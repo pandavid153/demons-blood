@@ -1087,7 +1087,8 @@ function updateCards() {
 
 function buildWaveBar() {
   const bar = $('wave-bar');
-  bar.innerHTML = '';
+  bar.innerHTML = '<div id="wave-track"></div>';
+  const track = bar.querySelector('#wave-track');
   WAVES.forEach((w, i) => {
     const stone = document.createElement('div');
     stone.className = 'wavestone';
@@ -1095,19 +1096,30 @@ function buildWaveBar() {
     stone.innerHTML = `<span class="ws-num">${i + 1}</span>`;
     stone.addEventListener('mouseenter', () => showWaveTip(stone, i));
     stone.addEventListener('mouseleave', hideWaveTip);
-    bar.appendChild(stone);
+    track.appendChild(stone);
   });
 }
 
+const WAVE_VISIBLE = 7;
+
 function updateWaveBar() {
+  const track = $('wave-track');
+  if (!track) return;
+  const stones = track.children;
   const activeIdx = waveActive ? waveIndex : (countdown > 0 ? waveIndex + 1 : waveIndex);
-  const stones = $('wave-bar').children;
   for (let i = 0; i < stones.length; i++) {
     const el = stones[i];
     el.classList.toggle('done', i < activeIdx);
     el.classList.toggle('current', i === activeIdx && state === 'playing');
     el.classList.toggle('soon', i === activeIdx + 1 && state === 'playing');
   }
+  if (state !== 'playing') return;
+  const maxStart = Math.max(0, WAVES.length - WAVE_VISIBLE);
+  const progress = waveActive ? 0 : Math.min(1, Math.max(0, 1 - countdown / WAVE_BREAK));
+  const start = Math.min(Math.max(activeIdx - 1, 0) + progress, maxStart);
+  const step = stones.length > 1 ? stones[1].offsetLeft - stones[0].offsetLeft : 0;
+  const scroll = Math.max(0, start) * step;
+  track.style.transform = 'translateX(' + (-scroll) + 'px)';
 }
 
 function showWaveTip(stone, index) {
