@@ -388,7 +388,7 @@ function updateWaves(dt) {
    ============================================================ */
 function spawnEnemy(type, wave) {
   const def = ENEMY_DEFS[type];
-  const baseHp = def.boss ? def.hp : Math.round(def.hp * hpScale);
+  const baseHp = def.boss ? Math.round(def.hp * hpScale) : Math.round(def.hp * hpScale);
   const half = def.clampHalf || 0;
   const maxHp = baseHp;
   const e = {
@@ -1182,9 +1182,10 @@ function showWaveTip(stone, index) {
   const w = WAVES[index];
   const rows = w.groups.map(g => {
     const def = ENEMY_DEFS[g.type];
+    const hp = def.boss ? def.hp : Math.round(def.hp * hpScale);
     return `<div class="wt-row">` +
       `<span class="wt-enemy">${def.name} <span class="wt-count">×${g.count}</span></span>` +
-      `<span class="wt-meta">${def.hp} HP</span>` +
+      `<span class="wt-meta">${hp} HP</span>` +
       `</div>`;
   }).join('');
   tip.innerHTML =
