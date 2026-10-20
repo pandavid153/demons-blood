@@ -1278,11 +1278,12 @@ const Sprites = (() => {
   /* ---------------- THE BLOOD WARDEN (boss) ---------------- */
   function drawWarden(ctx, x, y, o) {
     const t = o.t, ph = o.phase, F = o.flash > 0;
+    const S = 0.76;
     ctx.save();
     ctx.fillStyle = 'rgba(0,0,0,0.55)';
-    ctx.beginPath(); ctx.ellipse(x, y + 38, 34, 11, 0, 0, TAU); ctx.fill();
+    ctx.beginPath(); ctx.ellipse(x, y + 38 * S, 34 * S, 11 * S, 0, 0, TAU); ctx.fill();
     ctx.translate(x, y);
-    ctx.scale(o.dir, 1);
+    ctx.scale(o.dir * S, S);
     const bob = Math.sin(ph) * 3;
     ctx.translate(0, bob * 0.5);
 
