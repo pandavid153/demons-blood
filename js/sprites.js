@@ -6,6 +6,7 @@
 
 const Sprites = (() => {
   const TAU = Math.PI * 2;
+  const VIEW_W = 1152;
 
   /* ---------------- color utils ---------------- */
   function parse(hex) {
@@ -1495,12 +1496,14 @@ const Sprites = (() => {
       ctx.translate(-e.x, -e.y);
     }
     const fn = ENEMY_PAINT[e.type];
-    if (fn) fn(ctx, e.x, e.y, o);
+    if (fn) fn(ctx, e.x + (e.clampX || 0), e.y, o);
     ctx.restore();
 
     if (!e.dying && e.hp < e.maxHp) {
       const w = e.def.barW;
-      healthBar(ctx, e.x, e.y - e.def.barH, w, e.hp / e.maxHp, !!e.def.boss);
+      const half = w / 2 + 2;
+      const bx = Math.max(half, Math.min(VIEW_W - half, e.x + (e.clampX || 0)));
+      healthBar(ctx, bx, e.y - e.def.barH, w, e.hp / e.maxHp, !!e.def.boss);
       statusMarks(ctx, e, e.y - e.def.barH - 7);
     }
   }

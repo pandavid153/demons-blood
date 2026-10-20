@@ -59,8 +59,8 @@ const ENEMY_DEFS = {
   imp:      { name: 'Imp',              hp: 46,   speed: 88,  bounty: 9,   radius: 14, barW: 30, barH: 36 },
   ghoul:    { name: 'Ghoul',            hp: 135,  speed: 62,  bounty: 13,  radius: 16, barW: 36, barH: 46 },
   wraith:   { name: 'Wraith',           hp: 85,   speed: 104, bounty: 16,  radius: 15, barW: 34, barH: 52 },
-  colossus: { name: 'Bone Colossus',    hp: 720,  speed: 34,  bounty: 46,  radius: 26, barW: 54, barH: 72 },
-  warden:   { name: 'The Blood Warden', hp: 4200, speed: 30,  bounty: 260, radius: 36, barW: 80, barH: 116, boss: true, lifeCost: 5 }
+  colossus: { name: 'Bone Colossus',    hp: 720,  speed: 34,  bounty: 46,  radius: 26, barW: 54, barH: 72, clampHalf: 42 },
+  warden:   { name: 'The Blood Warden', hp: 4200, speed: 30,  bounty: 260, radius: 36, barW: 80, barH: 116, boss: true, lifeCost: 5, clampHalf: 104 }
 };
 
 const TOWER_DEFS = {
@@ -415,7 +415,19 @@ function updateEnemies(dt) {
       e.y += (dy / d) * step;
     }
     e.walkPhase += step * 0.085;
+
+    e.clampX = clampForEnemy(e);
   }
+}
+
+/* Keep wide foes (colossus, boss) fully inside the level horizontally so
+   their sprite and HP bar never clip out of the visible area. */
+function clampForEnemy(e) {
+  const half = e.def.clampHalf || 0;
+  if (!half) return 0;
+  if (e.x < half) return half - e.x;
+  if (e.x > W - half) return (W - half) - e.x;
+  return 0;
 }
 
 function damageEnemy(e, amount, src) {
