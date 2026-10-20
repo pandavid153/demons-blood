@@ -29,7 +29,7 @@ html, body {
 /* ---------- stage (scales to fit window) ---------- */
 #stage {
   position: absolute;
-  width: 1400px; height: 660px;
+  width: 1314px; height: 660px;
   transform-origin: 0 0;
   overflow: hidden;
   background: #0a070c;
@@ -148,7 +148,7 @@ html, body {
 
 /* ---------- info panel ---------- */
 #info-panel {
-  position: absolute; left: 1140px; bottom: 88px;
+  position: absolute; left: 1054px; bottom: 88px;
   width: 250px;
   padding: 8px 12px 10px;
   background: linear-gradient(180deg, rgba(30,23,31,.97), rgba(15,11,17,.97));
@@ -214,7 +214,7 @@ html, body {
 
 /* ---------- shop ---------- */
 #shop {
-  position: absolute; left: 1140px; top: 56px;
+  position: absolute; left: 1054px; top: 56px;
   width: 250px;
   display: flex; flex-direction: column; gap: 4px;
   padding: 6px;
@@ -275,7 +275,7 @@ html, body {
 
 /* ---------- wave button ---------- */
 #btn-wave {
-  position: absolute; left: 1140px; bottom: 14px;
+  position: absolute; left: 1054px; bottom: 14px;
   width: 250px;
   display: flex; flex-direction: column; align-items: center; gap: 1px;
   padding: 9px 10px;
@@ -333,7 +333,10 @@ html, body {
   background: radial-gradient(ellipse at 50% 42%, rgba(20,8,14,.55), rgba(4,2,5,.93) 78%);
   z-index: 20;
 }
-#title-screen { background: linear-gradient(180deg, rgba(4,2,6,.25), rgba(4,2,6,.15) 45%, rgba(4,2,6,.75)); }
+#title-screen {
+  background: linear-gradient(180deg, rgba(4,2,6,.25), rgba(4,2,6,.15) 45%, rgba(4,2,6,.75));
+  padding-right: 270px;
+}
 
 .title-logo { text-align: center; }
 .title-pre {
