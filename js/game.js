@@ -102,12 +102,12 @@ const TOWER_DEFS = {
     ]
   },
   seeker: {
-    name: 'Seeker Spire', cost: 120, color: '#ff4455', proj: 'seeker',
+    name: 'Seeker Spire', cost: 100, color: '#ff4455', proj: 'seeker',
     desc: 'Sniper that locks onto one enemy, charging a white-to-red laser and unleashing a devastating beam on full charge.',
     levels: [
       { dmg: 95, range: 230, rate: 0.35, chargeMax: 2.0 },
-      { up: 150, dmg: 170, range: 248, rate: 0.32, chargeMax: 2.0 },
-      { up: 220, dmg: 290, range: 268, rate: 0.30, chargeMax: 2.0 }
+      { up: 120, dmg: 170, range: 248, rate: 0.32, chargeMax: 2.0 },
+      { up: 176, dmg: 290, range: 268, rate: 0.30, chargeMax: 2.0 }
     ]
   }
 };
