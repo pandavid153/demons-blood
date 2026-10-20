@@ -222,6 +222,7 @@ function resetGame() {
   $('defeat-screen').classList.add('hidden');
   $('btn-speed').textContent = '1×';
   $('btn-speed').classList.remove('active');
+  $('btn-speed').classList.remove('fast');
   $('btn-pause').classList.remove('active');
   $('toasts').innerHTML = '';
 }
@@ -271,9 +272,10 @@ function setPaused(p) {
 }
 
 function toggleSpeed() {
-  speed = speed === 1 ? 2 : 1;
+  speed = speed === 1 ? 2 : speed === 2 ? 3 : 1;
   $('btn-speed').textContent = speed + '×';
-  $('btn-speed').classList.toggle('active', speed === 2);
+  $('btn-speed').classList.toggle('active', speed > 1);
+  $('btn-speed').classList.toggle('fast', speed === 3);
 }
 
 /* ============================================================
@@ -880,7 +882,6 @@ function update(dt) {
   updateProjectiles(dt);
   updateParticles(dt);
   updateTexts(dt);
-  if (shake > 0) shake = Math.max(0, shake - dt * 26);
 }
 
 /* ============================================================
@@ -1150,6 +1151,7 @@ function frame(now) {
 
   if (state === 'playing' && !paused) update(rdt * speed);
   updateEmbers(rdt);
+  if (shake > 0) shake = Math.max(0, shake - rdt * 26);
 
   render(visualT);
   if (state === 'playing') syncHUD();
