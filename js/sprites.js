@@ -740,7 +740,7 @@ const Sprites = (() => {
     // shadow
     ctx.fillStyle = 'rgba(0,0,0,0.45)';
     ctx.beginPath(); ctx.ellipse(0, 12, 18, 6, 0, 0, TAU); ctx.fill();
-    // base plinth (matches others)
+    // base plinth
     const pb = ctx.createLinearGradient(0, 0, 0, 14);
     pb.addColorStop(0, '#3a2c34'); pb.addColorStop(1, '#161015');
     ctx.fillStyle = pb;
@@ -748,7 +748,6 @@ const Sprites = (() => {
     ctx.strokeStyle = 'rgba(0,0,0,0.75)'; ctx.lineWidth = 1.6; ctx.stroke();
     ctx.fillStyle = '#22191e';
     ctx.beginPath(); ctx.moveTo(-13, 2); ctx.lineTo(13, 2); ctx.lineTo(10, 12); ctx.lineTo(-10, 12); ctx.closePath(); ctx.fill();
-    // tier plate
     if (level >= 2) {
       ctx.fillStyle = rgba('#e04552', 0.16);
       ctx.beginPath(); ctx.moveTo(-12, 3); ctx.lineTo(12, 3); ctx.lineTo(9.5, 11); ctx.lineTo(-9.5, 11); ctx.closePath(); ctx.fill();
@@ -764,7 +763,6 @@ const Sprites = (() => {
     ctx.fillStyle = bw;
     ctx.beginPath(); ctx.moveTo(-10, -2); ctx.lineTo(10, -2); ctx.lineTo(7, baseH + 6); ctx.lineTo(-7, baseH + 6); ctx.closePath(); ctx.fill();
     ctx.strokeStyle = 'rgba(0,0,0,0.8)'; ctx.lineWidth = 1.8; ctx.stroke();
-    // banding
     ctx.strokeStyle = 'rgba(224,69,82,0.24)'; ctx.lineWidth = 2;
     ctx.beginPath(); ctx.moveTo(-8, -12); ctx.lineTo(8, -12); ctx.stroke();
     ctx.beginPath(); ctx.moveTo(-7.5, -22); ctx.lineTo(7.5, -22); ctx.stroke();
@@ -784,26 +782,46 @@ const Sprites = (() => {
     ctx.strokeStyle = 'rgba(0,0,0,0.8)'; ctx.lineWidth = 1.6; ctx.stroke();
     ctx.fillStyle = '#161016';
     ctx.beginPath(); ctx.arc(0, th + 2, 6 + level * 0.8, 0, Math.PI); ctx.closePath(); ctx.fill();
-    // orb at top (stationary, charges white->red)
+    // level 3: orbiting red shards (like blood/doom style)
+    if (level >= 3) {
+      for (let i = 0; i < 4; i++) {
+        const a = t * 2.6 + (i / 4) * TAU;
+        const ox = Math.cos(a) * (16 + Math.sin(t * 1.6) * 2), oy = th - 6 + Math.sin(a) * (8 + Math.cos(t * 1.4) * 2);
+        ctx.save();
+        ctx.globalCompositeOperation = 'lighter';
+        glow(ctx, ox, oy, 8, '#ff2f45', 0.5 + Math.sin(t * 4 + i) * 0.25);
+        ctx.restore();
+        ctx.fillStyle = '#ff6b7a';
+        poly(ctx, [[ox, oy - 4], [ox + 3, oy], [ox, oy + 4], [ox - 3, oy]]); ctx.fill();
+        ctx.strokeStyle = rgba('#ffd9dd', 0.4); ctx.lineWidth = 1;
+        poly(ctx, [[ox, oy - 4], [ox + 3, oy], [ox, oy + 4], [ox - 3, oy]]); ctx.stroke();
+      }
+      // crackle veins on body
+      ctx.strokeStyle = rgba('#ff3d52', 0.4 + Math.sin(t * 3.2) * 0.18);
+      ctx.lineWidth = 1.4;
+      ctx.beginPath(); ctx.moveTo(-6, -18); ctx.lineTo(-7, -38); ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(5, -14); ctx.lineTo(6, -34); ctx.stroke();
+    }
+    // orb at top
     ctx.save(); ctx.globalCompositeOperation = 'lighter';
-    const orbR = (4.2 + level * 0.8) + tcol * (3 + level * 0.6);
+    const orbBaseR = (4.4 + level * 0.9);
+    const orbR = orbBaseR + tcol * (3.2 + level * 0.7) + (level >= 3 ? Math.sin(t * 5.2) * 1.4 : 0);
     const og = ctx.createRadialGradient(0, th - 4 + flick * 0.3, 1, 0, th - 4 + flick * 0.3, orbR * 2);
     og.addColorStop(0, tcol < 0.38 ? '#ffffff' : '#fff0f0');
-    og.addColorStop(0.42, tcol < 0.52 ? 'rgba(255,255,255,0.88)' : 'rgba(255,58,70,0.92)');
+    og.addColorStop(0.42, tcol < 0.52 ? 'rgba(255,255,255,0.9)' : 'rgba(255,58,70,0.95)');
     og.addColorStop(1, 'rgba(255,40,50,0)');
     ctx.fillStyle = og;
-    ctx.beginPath(); ctx.arc(0, th - 4 + flick * 0.3, orbR * 1.7, 0, TAU); ctx.fill();
+    ctx.beginPath(); ctx.arc(0, th - 4 + flick * 0.3, orbR * 1.8, 0, TAU); ctx.fill();
     ctx.restore();
     ctx.fillStyle = tcol < 0.34 ? '#fff4f4' : '#ffb6ba';
     ctx.beginPath(); ctx.arc(0, th - 4 + flick * 0.3, orbR * 0.58, 0, TAU); ctx.fill();
     ctx.fillStyle = '#ffffff';
     ctx.beginPath(); ctx.arc(-0.7, th - 4.8 + flick * 0.3, orbR * 0.26, 0, TAU); ctx.fill();
-    // glow ring when charging
-    if (tcol > 0.1) {
+    if (tcol > 0.1 || level >= 3) {
       ctx.save(); ctx.globalCompositeOperation = 'lighter';
-      ctx.strokeStyle = rgba(tcol < 0.5 ? '#ffffff' : '#ff2a2a', 0.35 + tcol * 0.4);
-      ctx.lineWidth = 2 + tcol;
-      ctx.beginPath(); ctx.arc(0, th - 4, orbR * 1.1, 0, TAU); ctx.stroke();
+      ctx.strokeStyle = rgba(level >= 3 ? '#ff3a3a' : (tcol < 0.5 ? '#ffffff' : '#ff2a2a'), (level >= 3 ? 0.5 : 0.35) + tcol * 0.4);
+      ctx.lineWidth = 2 + tcol + (level >= 3 ? Math.sin(t * 6) * 0.8 : 0);
+      ctx.beginPath(); ctx.arc(0, th - 4, orbR * 1.12, 0, TAU); ctx.stroke();
       ctx.restore();
     }
     ctx.restore();
