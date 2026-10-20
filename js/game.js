@@ -1081,7 +1081,7 @@ function syncHUD() {
   }
 
   const sec = Math.ceil(countdown);
-  if (!waveActive && sec !== waveBtnSecond) {
+  if (sec !== waveBtnSecond) {
     waveBtnSecond = sec;
     updateWaveBtn();
   }
@@ -1179,19 +1179,15 @@ function totalCount(w) {
 function updateWaveBtn() {
   const label = $('wave-label'), bonus = $('wave-bonus'), btn = $('btn-wave');
   if (state !== 'playing') { btn.disabled = true; return; }
-  if (waveActive) {
-    label.textContent = 'Wave ' + (waveIndex + 1) + ' — In Progress';
-    bonus.textContent = '';
-    btn.disabled = true;
-  } else if (waveIndex >= WAVES.length - 1) {
+  if (waveIndex >= WAVES.length - 1) {
     label.textContent = 'All Waves Cleared';
     bonus.textContent = '';
     btn.disabled = true;
-  } else {
-    label.textContent = 'Call Wave ' + (waveIndex + 2);
-    bonus.textContent = '+' + Math.round(Math.max(0, Math.ceil(countdown)) * 1.5) + ' gold';
-    btn.disabled = countdown <= 0;
+    return;
   }
+  label.textContent = 'Call Wave ' + (waveIndex + 2);
+  bonus.textContent = '+' + Math.round(Math.max(0, Math.ceil(countdown)) * 1.5) + ' gold';
+  btn.disabled = countdown <= 0;
 }
 
 function renderPanel() {
