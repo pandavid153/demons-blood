@@ -190,7 +190,7 @@ function init() {
     diffSlider.addEventListener('input', () => {
       const d = parseInt(diffSlider.value, 10);
       const dn = $('diff-num'); if (dn) dn.textContent = d;
-      const dd = $('diff-desc'); if (dd) dd.textContent = 'Enemy HP: +' + (d * 10) + '%';
+      const dd = $('diff-desc'); if (dd) dd.textContent = d === 0 ? 'Enemy HP: +0%' : 'Enemy HP: +' + (d * 10) + '%';
     });
   }
   if ($('btn-continue')) $('btn-continue').addEventListener('click', startGame);
@@ -268,12 +268,13 @@ function openDifficulty() {
   const d = difficulty;
   const ds = $('diff-slider'); if (ds) ds.value = d;
   const dn = $('diff-num'); if (dn) dn.textContent = d;
-  const dd = $('diff-desc'); if (dd) dd.textContent = 'Enemy HP: +' + (d * 10) + '%';
+  const dd = $('diff-desc'); if (dd) dd.textContent = d === 0 ? 'Enemy HP: +0%' : 'Enemy HP: +' + (d * 10) + '%';
 }
 
 function startGame() {
   const ds = $('diff-slider');
-  difficulty = ds ? parseInt(ds.value, 10) : 1;
+  difficulty = ds ? parseInt(ds.value, 10) : 0;
+  if (isNaN(difficulty)) difficulty = 0;
   hpScale = 1 + difficulty * 0.1;
   resetGame();
   state = 'playing';
