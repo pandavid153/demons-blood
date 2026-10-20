@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Demon's Blood — Dark Fantasy Tower Defense</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;800&family=EB+Garamond:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+<div id="stage">
+  <canvas id="game" width="1152" height="640"></canvas>
+
+  <!-- ==================== IN-GAME HUD ==================== -->
+  <div id="hud" class="hidden">
+
+    <div id="top-bar">
+      <div class="stat" id="stat-lives" title="Portal Integrity">
+        <svg viewBox="0 0 24 24" class="ico"><path d="M12 21s-7.5-4.9-9.6-9.3C.7 8.3 2.4 4.6 5.8 3.7c2-.5 4.2.3 5.4 2 1.2-1.7 3.4-2.5 5.4-2 3.4.9 5.1 4.6 3.4 8C19.5 16.1 12 21 12 21z"/></svg>
+        <span id="val-lives">20</span>
+      </div>
+      <div class="stat" id="stat-gold" title="Blood Gold">
+        <svg viewBox="0 0 24 24" class="ico gold"><circle cx="12" cy="12" r="8.5"/><circle cx="12" cy="12" r="5.2" class="inner"/></svg>
+        <span id="val-gold">220</span>
+      </div>
+      <div class="stat" id="stat-wave" title="Wave">
+        <svg viewBox="0 0 24 24" class="ico"><path d="M5 21V4.5c0-.6.7-.9 1.1-.4L8 6.5l2-2.4c.4-.5 1.1-.2 1.1.4V15c0 .6.7.9 1.1.4L14 13l2 2.4c.4.5 1.1.2 1.1-.4"/></svg>
+        <span id="val-wave">Wave 0 / 10</span>
+      </div>
+      <div class="spacer"></div>
+      <button class="hud-btn" id="btn-pause" title="Pause (Space)">&#10074;&#10074;</button>
+      <button class="hud-btn" id="btn-speed" title="Game speed (F)">1&times;</button>
+    </div>
+
+    <div id="boss-bar" class="hidden">
+      <div id="boss-name">The Blood Warden</div>
+      <div class="bar-track"><div id="boss-fill"></div></div>
+    </div>
+
+    <div id="banner" class="hidden"></div>
+
+    <!-- Tower info panel -->
+    <div id="info-panel" class="hidden">
+      <button id="btn-close-panel" title="Close">&times;</button>
+      <div class="ip-gem" id="ip-gem"></div>
+      <h3 id="ip-title">Blood Spire</h3>
+      <div id="ip-level">Level I</div>
+      <ul id="ip-stats"></ul>
+      <button id="btn-upgrade" class="panel-btn">Upgrade</button>
+      <button id="btn-sell" class="panel-btn alt">Sell</button>
+    </div>
+
+    <!-- Tower shop -->
+    <div id="shop">
+      <div class="tower-card" data-type="blood">
+        <div class="tc-key">1</div>
+        <canvas width="76" height="76"></canvas>
+        <div class="tc-name">Blood Spire</div>
+        <div class="tc-cost"><span class="coin"></span><span class="cost-val">50</span></div>
+      </div>
+      <div class="tower-card" data-type="frost">
+        <div class="tc-key">2</div>
+        <canvas width="76" height="76"></canvas>
+        <div class="tc-name">Frost Shrine</div>
+        <div class="tc-cost"><span class="coin"></span><span class="cost-val">65</span></div>
+      </div>
+      <div class="tower-card" data-type="doom">
+        <div class="tc-key">3</div>
+        <canvas width="76" height="76"></canvas>
+        <div class="tc-name">Doom Spire</div>
+        <div class="tc-cost"><span class="coin"></span><span class="cost-val">90</span></div>
+      </div>
+      <div class="tower-card" data-type="soul">
+        <div class="tc-key">4</div>
+        <canvas width="76" height="76"></canvas>
+        <div class="tc-name">Soul Altar</div>
+        <div class="tc-cost"><span class="coin"></span><span class="cost-val">75</span></div>
+      </div>
+    </div>
+
+    <button id="btn-wave">
+      <span id="wave-label">Call Wave 1</span>
+      <span id="wave-bonus">+0</span>
+    </button>
+
+    <div id="toasts"></div>
+  </div>
+
+  <!-- ==================== TITLE SCREEN ==================== -->
+  <div id="title-screen" class="screen">
+    <div class="title-logo">
+      <div class="title-pre">A Dark Fantasy Tower Defense</div>
+      <h1>Demon&rsquo;s Blood</h1>
+      <div class="title-rule"><span></span><i></i><span></span></div>
+      <div class="title-sub">Corrupted Lands &mdash; Level I: The Bleeding Road</div>
+    </div>
+    <button id="btn-start" class="btn-main">Begin the Ritual</button>
+    <div class="title-tips">
+      <span><b>1&ndash;4</b> summon tower</span>
+      <span><b>Right-click / Esc</b> cancel</span>
+      <span><b>Space</b> pause</span>
+      <span><b>F</b> speed</span>
+    </div>
+  </div>
+
+  <!-- ==================== PAUSE ==================== -->
+  <div id="pause-screen" class="screen hidden">
+    <div class="screen-box">
+      <h2>Ritual Suspended</h2>
+      <button id="btn-resume" class="btn-main">Resume</button>
+    </div>
+  </div>
+
+  <!-- ==================== VICTORY ==================== -->
+  <div id="victory-screen" class="screen hidden">
+    <div class="screen-box">
+      <h2 class="good">The Road is Purged</h2>
+      <div class="result-sub">The Bleeding Road endures your vigil.</div>
+      <div class="result-stats">
+        <div><span class="rs-val" id="v-kills">0</span><span class="rs-key">Slain</span></div>
+        <div><span class="rs-val" id="v-gold">0</span><span class="rs-key">Gold Earned</span></div>
+        <div><span class="rs-val" id="v-time">0:00</span><span class="rs-key">Time</span></div>
+      </div>
+      <button id="btn-replay-win" class="btn-main">Ritual Again</button>
+      <button id="btn-menu-win" class="btn-ghost">Main Menu</button>
+    </div>
+  </div>
+
+  <!-- ==================== DEFEAT ==================== -->
+  <div id="defeat-screen" class="screen hidden">
+    <div class="screen-box">
+      <h2 class="bad">The Portal Has Fallen</h2>
+      <div class="result-sub">Blood floods the mortal realm.</div>
+      <div class="result-stats">
+        <div><span class="rs-val" id="d-waves">0</span><span class="rs-key">Waves Held</span></div>
+        <div><span class="rs-val" id="d-kills">0</span><span class="rs-key">Slain</span></div>
+        <div><span class="rs-val" id="d-time">0:00</span><span class="rs-key">Time</span></div>
+      </div>
+      <button id="btn-replay-lose" class="btn-main">Ritual Again</button>
+      <button id="btn-menu-lose" class="btn-ghost">Main Menu</button>
+    </div>
+  </div>
+
+  <div id="damage-flash"></div>
+</div>
+
+<script src="js/sprites.js"></script>
+<script src="js/game.js"></script>
+</body>
+</html>
