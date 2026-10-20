@@ -186,6 +186,7 @@ function init() {
 
   fit();
   resetGame();
+  canvas.classList.add('title-bg');
   requestAnimationFrame(frame);
 }
 
@@ -226,6 +227,7 @@ function resetGame() {
 function startGame() {
   resetGame();
   state = 'playing';
+  canvas.classList.remove('title-bg');
   $('title-screen').classList.add('hidden');
   $('hud').classList.remove('hidden');
   updateCards();
@@ -239,6 +241,7 @@ function startGame() {
 function toMenu() {
   state = 'title';
   resetGame();
+  canvas.classList.add('title-bg');
   $('title-screen').classList.remove('hidden');
 }
 
