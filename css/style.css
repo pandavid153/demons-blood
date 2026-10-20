@@ -537,6 +537,13 @@ h1 {
 .result-stats { display: flex; gap: 34px; margin: 6px 0 4px; }
 .result-stats > div { display: flex; flex-direction: column; gap: 3px; }
 .rs-val { font-family: "Cinzel", serif; font-size: 30px; font-weight: 800; color: var(--gold); }
+
+.difficulty-box { min-width: 420px; }
+.diff-row { display: flex; align-items: baseline; justify-content: space-between; width: 100%; gap: 18px; margin-top: 4px; }
+.diff-label { font-family: "Cinzel", serif; font-size: 16px; letter-spacing: 4px; text-transform: uppercase; color: #e8d9dd; }
+.diff-value { font-family: "Cinzel", serif; font-size: 18px; font-weight: 700; color: var(--gold); }
+.diff-slider { width: 100%; accent-color: var(--blood-bright); }
+.diff-desc { font-style: italic; font-size: 16px; color: var(--text-dim); margin-top: -2px; }
 .rs-key { font-size: 13px; letter-spacing: 2px; text-transform: uppercase; color: var(--text-dim); }
 
 #damage-flash {

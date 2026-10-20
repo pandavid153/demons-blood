@@ -175,7 +175,17 @@ function init() {
   window.addEventListener('keydown', onKey);
   window.addEventListener('resize', fit);
 
-  $('btn-start').addEventListener('click', startGame);
+  $('btn-start').addEventListener('click', openDifficulty);
+  const diffSlider = $('diff-slider');
+  if (diffSlider) {
+    diffSlider.addEventListener('input', () => {
+      const d = parseInt(diffSlider.value, 10);
+      const dn = $('diff-num'); if (dn) dn.textContent = d;
+      const dd = $('diff-desc'); if (dd) dd.textContent = 'Enemy HP: +' + (d * 10) + '%';
+    });
+  }
+  if ($('btn-continue')) $('btn-continue').addEventListener('click', startGame);
+  if ($('btn-back-title')) $('btn-back-title').addEventListener('click', toMenu);
   $('btn-pause').addEventListener('click', () => setPaused(!paused));
   $('btn-resume').addEventListener('click', () => setPaused(false));
   $('btn-speed').addEventListener('click', toggleSpeed);
@@ -231,6 +241,7 @@ function resetGame() {
   $('pause-screen').classList.add('hidden');
   $('victory-screen').classList.add('hidden');
   $('defeat-screen').classList.add('hidden');
+  $('difficulty-screen').classList.add('hidden');
   $('btn-speed').textContent = '1×';
   $('btn-speed').classList.remove('active');
   $('btn-speed').classList.remove('fast');
@@ -238,11 +249,28 @@ function resetGame() {
   $('toasts').innerHTML = '';
 }
 
+let difficulty = 1;
+let hpScale = 1;
+
+function openDifficulty() {
+  state = 'title';
+  $('title-screen').classList.add('hidden');
+  $('difficulty-screen').classList.remove('hidden');
+  const d = difficulty;
+  const ds = $('diff-slider'); if (ds) ds.value = d;
+  const dn = $('diff-num'); if (dn) dn.textContent = d;
+  const dd = $('diff-desc'); if (dd) dd.textContent = 'Enemy HP: +' + (d * 10) + '%';
+}
+
 function startGame() {
+  const ds = $('diff-slider');
+  difficulty = ds ? parseInt(ds.value, 10) : 1;
+  hpScale = 1 + difficulty * 0.1;
   resetGame();
   state = 'playing';
   canvas.classList.remove('title-bg');
   $('title-screen').classList.add('hidden');
+  $('difficulty-screen').classList.add('hidden');
   $('hud').classList.remove('hidden');
   updateCards();
   updateWaveBtn();
@@ -256,6 +284,7 @@ function toMenu() {
   state = 'title';
   resetGame();
   canvas.classList.add('title-bg');
+  $('difficulty-screen').classList.add('hidden');
   $('title-screen').classList.remove('hidden');
 }
 
@@ -359,13 +388,16 @@ function updateWaves(dt) {
    ============================================================ */
 function spawnEnemy(type, wave) {
   const def = ENEMY_DEFS[type];
+  const baseHp = def.boss ? def.hp : Math.round(def.hp * hpScale);
   const half = def.clampHalf || 0;
+  const maxHp = baseHp;
   const e = {
     type, def,
     wave: wave === undefined ? waveIndex : wave,
+    baseHp,
     x: Math.max(SPAWN_PT.x, half), y: SPAWN_PT.y,
     seg: 2,
-    hp: def.hp, maxHp: def.hp,
+    hp: maxHp, maxHp,
     speed: def.speed,
     dir: 1,
     walkPhase: Math.random() * 6.28,
