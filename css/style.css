@@ -29,21 +29,20 @@ html, body {
 /* ---------- stage (scales to fit window) ---------- */
 #stage {
   position: absolute;
-  width: 1152px; height: 640px;
+  width: 1400px; height: 660px;
   transform-origin: 0 0;
   overflow: hidden;
   background: #0a070c;
   box-shadow: 0 0 80px rgba(0,0,0,.9);
 }
-/* Inset the map so there is a clear margin between the level and the HUD.
-   The canvas keeps its 1152x640 buffer but is visually scaled down and
-   placed inside the stage, leaving room for the HUD on the top and right. */
+/* The level is drawn into its own smaller box on the left of the stage so the
+   tower interface, stats and controls fit alongside it in the right sidebar. */
 #game {
   position: absolute;
-  left: 0; top: 46px;
+  left: 0; top: 44px;
   width: 1152px; height: 640px;
   transform-origin: 0 0;
-  transform: scale(0.82, 0.87);
+  transform: scale(0.90625, 0.9125);
   display: block;
   border-radius: 0 4px 4px 0;
   box-shadow: 0 0 0 1px #3a2b36;
@@ -63,6 +62,7 @@ html, body {
   padding: 0 12px;
   background: linear-gradient(180deg, rgba(24,17,24,.96), rgba(12,8,13,.9) 70%, rgba(12,8,13,0));
   border-bottom: 1px solid rgba(90,66,78,.4);
+  z-index: 3;
 }
 .stat {
   display: flex; align-items: center; gap: 7px;
@@ -97,8 +97,9 @@ html, body {
 
 /* ---------- boss bar ---------- */
 #boss-bar {
-  position: absolute; top: 52px; left: 50%; transform: translateX(-50%);
+  position: absolute; top: 54px; left: 522px; transform: translateX(-50%);
   width: 460px; text-align: center;
+  z-index: 3;
 }
 #boss-name {
   font-family: "Cinzel", serif; font-size: 13px; font-weight: 800;
@@ -122,7 +123,7 @@ html, body {
 
 /* ---------- wave banner ---------- */
 #banner {
-  position: absolute; top: 96px; left: 50%;
+  position: absolute; top: 96px; left: 522px;
   transform: translateX(-50%);
   font-family: "Cinzel", serif; font-weight: 800;
   font-size: 30px; letter-spacing: 6px; text-transform: uppercase;
@@ -147,24 +148,25 @@ html, body {
 
 /* ---------- info panel ---------- */
 #info-panel {
-  position: absolute; left: 10px; top: 56px;
-  width: 236px;
-  padding: 14px 14px 12px;
+  position: absolute; left: 1056px; bottom: 92px;
+  width: 332px;
+  padding: 8px 14px 10px;
   background: linear-gradient(180deg, rgba(30,23,31,.97), rgba(15,11,17,.97));
   border: 1px solid var(--panel-line);
   border-top: 2px solid var(--blood);
   border-radius: 6px;
   box-shadow: 0 8px 26px rgba(0,0,0,.65), inset 0 1px 0 rgba(255,255,255,.05);
   pointer-events: auto;
+  z-index: 4;
 }
 #btn-close-panel {
-  position: absolute; top: 6px; right: 8px;
+  position: absolute; top: 4px; right: 8px;
   background: none; border: none; color: var(--text-dim);
-  font-size: 20px; line-height: 1; cursor: pointer;
+  font-size: 18px; line-height: 1; cursor: pointer;
 }
 #btn-close-panel:hover { color: var(--blood-bright); }
 .ip-gem {
-  width: 46px; height: 46px; margin: 0 auto 6px;
+  width: 30px; height: 30px; margin: 0 auto 3px;
   border-radius: 50%;
   border: 1px solid #55414f;
   background: radial-gradient(circle at 35% 30%, #3a2c3a, #14101a);
@@ -172,25 +174,29 @@ html, body {
 }
 #ip-title {
   text-align: center; font-family: "Cinzel", serif;
-  font-size: 17px; font-weight: 700; color: var(--bone);
+  font-size: 15px; font-weight: 700; color: var(--bone);
+  line-height: 1.1;
 }
 #ip-level {
-  text-align: center; font-size: 13px; font-style: italic;
-  color: var(--gold); letter-spacing: 1.5px; margin-bottom: 8px;
+  text-align: center; font-size: 12px; font-style: italic;
+  color: var(--gold); letter-spacing: 1.5px; margin-bottom: 5px;
 }
-#ip-stats { list-style: none; margin-bottom: 10px; }
+#ip-stats {
+  list-style: none; margin-bottom: 6px;
+  display: grid; grid-template-columns: 1fr 1fr; gap: 0 14px;
+}
 #ip-stats li {
   display: flex; justify-content: space-between;
-  font-size: 14px; padding: 3px 2px;
+  font-size: 12.5px; padding: 1px 2px;
   border-bottom: 1px dotted rgba(120,100,110,.3);
 }
 #ip-stats li span:first-child { color: var(--text-dim); }
 #ip-stats li span:last-child { color: var(--bone); font-weight: 600; }
 
 .panel-btn {
-  display: block; width: 100%; margin-top: 6px;
-  padding: 8px 0;
-  font-family: "Cinzel", serif; font-size: 14px; font-weight: 700;
+  display: block; width: 100%; margin-top: 5px;
+  padding: 6px 0;
+  font-family: "Cinzel", serif; font-size: 13px; font-weight: 700;
   letter-spacing: 1px;
   color: #ffe9ec;
   background: linear-gradient(180deg, #7d1a26, #4c0f18);
@@ -208,17 +214,19 @@ html, body {
 
 /* ---------- shop ---------- */
 #shop {
-  position: absolute; right: 10px; bottom: 92px;
+  position: absolute; left: 1056px; top: 56px;
+  width: 332px;
   display: flex; flex-direction: column; gap: 8px;
   padding: 10px 8px;
   background: linear-gradient(180deg, rgba(26,19,27,.95), rgba(11,8,13,.97));
   border: 1px solid var(--panel-line);
   border-radius: 8px;
   box-shadow: 0 0 24px rgba(0,0,0,.6), inset 0 1px 0 rgba(255,255,255,.05);
+  z-index: 3;
 }
 .tower-card {
   position: relative;
-  width: 132px; padding: 5px 8px 5px 34px;
+  width: 314px; padding: 5px 10px 5px 46px;
   min-height: 56px;
   text-align: left;
   display: flex; flex-direction: column; justify-content: center;
@@ -229,8 +237,8 @@ html, body {
   transition: transform .12s, border-color .12s, box-shadow .12s;
 }
 .tower-card canvas {
-  position: absolute; left: 3px; top: 50%; transform: translateY(-50%);
-  width: 30px; height: 30px; display: block;
+  position: absolute; left: 6px; top: 50%; transform: translateY(-50%);
+  width: 38px; height: 38px; display: block;
 }
 .tower-card:hover { transform: translateX(-4px); border-color: #7a5f74; }
 .tower-card.selected {
@@ -268,11 +276,11 @@ html, body {
 
 /* ---------- wave button ---------- */
 #btn-wave {
-  position: absolute; right: 10px; bottom: 10px;
-  width: 150px;
+  position: absolute; left: 1056px; bottom: 14px;
+  width: 348px;
   display: flex; flex-direction: column; align-items: center; gap: 1px;
-  padding: 9px 12px;
-  font-family: "Cinzel", serif; font-weight: 800; font-size: 14px;
+  padding: 11px 12px;
+  font-family: "Cinzel", serif; font-weight: 800; font-size: 15px;
   letter-spacing: 1px;
   color: #ffe4e7;
   background: linear-gradient(180deg, #85202c, #4a0f18);
@@ -281,6 +289,7 @@ html, body {
   box-shadow: 0 0 18px rgba(179,32,46,.45), inset 0 1px 0 rgba(255,255,255,.12);
   transition: .15s;
   animation: wavePulse 1.8s ease-in-out infinite;
+  z-index: 4;
 }
 #btn-wave:hover { background: linear-gradient(180deg, #a12735, #5d131e); box-shadow: 0 0 26px rgba(224,69,82,.7); }
 #btn-wave:disabled {

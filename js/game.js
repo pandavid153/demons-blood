@@ -33,7 +33,7 @@ for (let i = 1; i < WAYPOINTS.length; i++) {
   CUM.push(CUM[i - 1] + SEG[i - 1]);
 }
 
-const SPAWN_PT = WAYPOINTS[0];
+const SPAWN_PT = WAYPOINTS[1];
 const EXIT_PT = WAYPOINTS[WAYPOINTS.length - 1];
 const RIFT = { x: 4, y: 96 };
 const PORTAL = { x: 1146, y: 544 };
@@ -190,10 +190,12 @@ function init() {
 }
 
 function fit() {
-  const s = Math.min(window.innerWidth / W, window.innerHeight / H);
+  const sw = stage.offsetWidth || W;
+  const sh = stage.offsetHeight || H;
+  const s = Math.min(window.innerWidth / sw, window.innerHeight / sh);
   stage.style.transform = `scale(${s})`;
-  stage.style.left = ((window.innerWidth - W * s) / 2) + 'px';
-  stage.style.top = ((window.innerHeight - H * s) / 2) + 'px';
+  stage.style.left = ((window.innerWidth - sw * s) / 2) + 'px';
+  stage.style.top = ((window.innerHeight - sh * s) / 2) + 'px';
 }
 
 /* ============================================================
@@ -323,10 +325,11 @@ function updateWaves(dt) {
    ============================================================ */
 function spawnEnemy(type) {
   const def = ENEMY_DEFS[type];
+  const half = def.clampHalf || 0;
   const e = {
     type, def,
-    x: SPAWN_PT.x, y: SPAWN_PT.y,
-    seg: 1,
+    x: Math.max(SPAWN_PT.x, half), y: SPAWN_PT.y,
+    seg: 2,
     hp: def.hp, maxHp: def.hp,
     speed: def.speed,
     dir: 1,
