@@ -300,6 +300,7 @@ function startWave() {
   spawnQueue.sort((a, b) => a.t - b.t);
   waveTimer = 0;
   waveActive = true;
+  countdown = WAVE_BREAK;
   showBanner('Wave ' + (waveIndex + 1), w.name);
   if (waveIndex === WAVES.length - 1) toast('A great darkness approaches…', true);
   updateWaveBtn();
@@ -321,16 +322,18 @@ function updateWaves(dt) {
     }
     if (!spawnQueue.length && !enemies.some(e => !e.dying)) {
       waveActive = false;
-      if (waveIndex >= WAVES.length - 1) victory();
-      else {
-        countdown = WAVE_BREAK;
-        toast('Wave ' + (waveIndex + 1) + ' repelled.');
-      }
+      if (waveIndex >= WAVES.length - 1) { victory(); return; }
+      toast('Wave ' + (waveIndex + 1) + ' repelled.');
       updateWaveBtn();
     }
-  } else if (countdown > 0) {
-    countdown -= dt;
-    if (countdown <= 0) { countdown = 0; startWave(); }
+  }
+
+  // The timer between waves runs continuously — it keeps ticking even while a
+  // wave is being fought, so the next wave starts on a steady cadence instead
+  // of resetting after every cleared wave.
+  if (waveIndex < WAVES.length - 1) {
+    if (countdown > 0) countdown = Math.max(0, countdown - dt);
+    if (countdown <= 0 && !waveActive) { countdown = 0; startWave(); }
   }
 }
 
@@ -1115,8 +1118,12 @@ function updateWaveBar() {
   }
   if (state !== 'playing') return;
   const maxStart = Math.max(0, WAVES.length - WAVE_VISIBLE);
-  const progress = waveActive ? 0 : Math.min(1, Math.max(0, 1 - countdown / WAVE_BREAK));
-  const start = Math.min(Math.max(activeIdx - 1, 0) + progress, maxStart);
+  // The timer runs continuously, so drive the strip from a single continuous
+  // position that never resets: it counts up by one for every wave as the
+  // countdown drains, with no backward jump when a new wave begins.
+  const frac = Math.min(1, Math.max(0, 1 - countdown / WAVE_BREAK));
+  const pos = waveIndex < 0 ? frac : waveIndex + frac;
+  const start = Math.min(Math.max(pos - 1, 0), maxStart);
   const step = stones.length > 1 ? stones[1].offsetLeft - stones[0].offsetLeft : 0;
   const scroll = Math.max(0, start) * step;
   track.style.transform = 'translateX(' + (-scroll) + 'px)';
