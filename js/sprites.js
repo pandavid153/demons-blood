@@ -733,36 +733,59 @@ const Sprites = (() => {
   function drawSeekerSpire(ctx, x, y, level, o) {
     ctx.save();
     ctx.translate(x, y);
-    const fy = -42;
+    const F = o.fire > 0, t = o.t;
+    const flick = Math.sin(t * 7) * 1.6;
+    const tk = 0;
+    // shadow
     ctx.fillStyle = 'rgba(0,0,0,0.45)';
-    ctx.beginPath(); ctx.ellipse(0, 12, 16, 6, 0, 0, TAU); ctx.fill();
-    const base = ctx.createLinearGradient(0, 0, 0, 10);
-    base.addColorStop(0, '#3a2d36'); base.addColorStop(1, '#151016');
-    ctx.fillStyle = base;
-    ctx.beginPath(); ctx.roundRect ? ctx.roundRect(-14, -6, 28, 16, 4) : (()=>{ctx.moveTo(-14,-6);ctx.arcTo(14,-6,14,10,4);ctx.arcTo(14,10,-14,10,4);ctx.arcTo(-14,10,-14,-6,4);ctx.arcTo(-14,-6,14,-6,4);})(); ctx.fill();
-    ctx.strokeStyle = 'rgba(255,70,80,0.6)'; ctx.lineWidth = 1.4; ctx.stroke();
-    ctx.fillStyle = '#1c151b';
-    ctx.beginPath(); ctx.roundRect ? ctx.roundRect(-10, -2, 20, 8, 2) : 0; if(ctx.roundRect) ctx.fill();
+    ctx.beginPath(); ctx.ellipse(0, 12, 18, 6, 0, 0, TAU); ctx.fill();
+    // base plinth
+    const pb = ctx.createLinearGradient(0, 0, 0, 14);
+    pb.addColorStop(0, '#34242b'); pb.addColorStop(1, '#181015');
+    ctx.fillStyle = pb;
+    ctx.beginPath(); ctx.moveTo(-16, 0); ctx.lineTo(16, 0); ctx.lineTo(12, 14); ctx.lineTo(-12, 14); ctx.closePath(); ctx.fill();
+    ctx.strokeStyle = 'rgba(0,0,0,0.7)'; ctx.lineWidth = 1.6; ctx.stroke();
+    ctx.fillStyle = '#21181d';
+    ctx.beginPath(); ctx.moveTo(-13, 2); ctx.lineTo(13, 2); ctx.lineTo(10, 12); ctx.lineTo(-10, 12); ctx.closePath(); ctx.fill();
+    // body
+    const bw = ctx.createLinearGradient(0, -6, 0, -48);
+    bw.addColorStop(0, '#4b333b'); bw.addColorStop(0.5, '#2b1b22'); bw.addColorStop(1, '#161016');
+    ctx.fillStyle = bw;
+    ctx.beginPath(); ctx.moveTo(-10, -2); ctx.lineTo(10, -2); ctx.lineTo(7, -44); ctx.lineTo(-7, -44); ctx.closePath(); ctx.fill();
+    ctx.strokeStyle = 'rgba(0,0,0,0.8)'; ctx.lineWidth = 1.8; ctx.stroke();
+    // rib
+    ctx.strokeStyle = 'rgba(224,69,82,0.28)'; ctx.lineWidth = 2;
+    ctx.beginPath(); ctx.moveTo(-8, -14); ctx.lineTo(8, -14); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(-7.5, -24); ctx.lineTo(7.5, -24); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(-7, -34); ctx.lineTo(7, -34); ctx.stroke();
+    // muzzle
     ctx.save();
     ctx.rotate(o.angle);
-    const f = o.fire || 0;
-    const c = ctx.createLinearGradient(0, -6, 0, fy);
-    c.addColorStop(0, '#5a4d56'); c.addColorStop(1, '#1a1319');
-    ctx.fillStyle = c;
-    ctx.beginPath(); ctx.moveTo(-7, -6); ctx.lineTo(7, -6); ctx.lineTo(4, fy + 8); ctx.lineTo(-4, fy + 8); ctx.closePath(); ctx.fill();
-    ctx.strokeStyle = 'rgba(255,80,90,0.5)'; ctx.lineWidth = 1.2; ctx.stroke();
+    const bm = ctx.createLinearGradient(0, -8, 0, -56);
+    bm.addColorStop(0, '#5a3842'); bm.addColorStop(1, '#1a1317');
+    ctx.fillStyle = bm;
+    ctx.beginPath(); ctx.moveTo(-5, -6); ctx.lineTo(5, -6); ctx.lineTo(3.6, -56); ctx.lineTo(-3.6, -56); ctx.closePath(); ctx.fill();
+    ctx.strokeStyle = 'rgba(0,0,0,0.8)'; ctx.lineWidth = 1.6; ctx.stroke();
+    // cooling vents
+    ctx.fillStyle = '#120d12';
+    ctx.beginPath(); ctx.arc(0, -18, 2.6, 0, TAU); ctx.fill();
+    ctx.beginPath(); ctx.arc(0, -28, 2.4, 0, TAU); ctx.fill();
+    // crystal/charge
     ctx.save(); ctx.globalCompositeOperation = 'lighter';
-    const g = ctx.createRadialGradient(0, fy, 2, 0, fy, 16);
-    const tcol = f < 0.01 ? 0 : Math.min(1, f / 0.4);
-    const r = Math.floor(255);
-    const gcol = Math.floor(255 * (1 - tcol));
-    const bcol = Math.floor(255 * (1 - tcol));
-    ctx.fillStyle = rgba(`rgb(${r},${gcol},${bcol})`, 0.9);
-    ctx.beginPath(); ctx.arc(0, fy, 5 + tcol * 3, 0, TAU); ctx.fill();
-    glow(ctx, 0, fy, 18 + tcol * 14, tcol < 0.5 ? '#ffffff' : '#ff2a2a', 0.8 + tcol * 0.2);
+    const f = o.fire || 0;
+    const tcol = f <= 0 ? 0 : Math.min(1, f / 0.4);
+    const orbR = 4 + tcol * 3;
+    const og = ctx.createRadialGradient(0, -58 + flick * 0.4, 1, 0, -58 + flick * 0.4, orbR * 2);
+    og.addColorStop(0, tcol < 0.4 ? '#ffffff' : '#fff0f0');
+    og.addColorStop(0.4, tcol < 0.5 ? 'rgba(255,255,255,0.8)' : 'rgba(255,60,70,0.9)');
+    og.addColorStop(1, 'rgba(255,40,50,0)');
+    ctx.fillStyle = og;
+    ctx.beginPath(); ctx.arc(0, -58 + flick * 0.4, orbR * 1.6, 0, TAU); ctx.fill();
     ctx.restore();
+    ctx.fillStyle = tcol < 0.35 ? '#fff4f4' : '#ffb4b8';
+    ctx.beginPath(); ctx.arc(0, -58 + flick * 0.4, orbR * 0.6, 0, TAU); ctx.fill();
     ctx.fillStyle = '#ffffff';
-    ctx.beginPath(); ctx.arc(0, fy, 2 + tcol * 1.2, 0, TAU); ctx.fill();
+    ctx.beginPath(); ctx.arc(-0.8, -58.8 + flick * 0.4, orbR * 0.28, 0, TAU); ctx.fill();
     ctx.restore();
     ctx.restore();
   }
