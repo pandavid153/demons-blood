@@ -5,7 +5,7 @@
 
 /* ---------------- constants ---------------- */
 const W = 1152, H = 640, TILE = 64, COLS = 18, ROWS = 10;
-const WAVE_BREAK = 15;
+const WAVE_BREAK = 24;
 const WAVE_LEAD = 3;
 const START_GOLD = 220, START_LIVES = 20;
 
@@ -179,7 +179,7 @@ function init() {
   $('btn-pause').addEventListener('click', () => setPaused(!paused));
   $('btn-resume').addEventListener('click', () => setPaused(false));
   $('btn-speed').addEventListener('click', toggleSpeed);
-  $('btn-wave').addEventListener('click', earlyCall);
+  $('btn-wave').addEventListener('click', () => earlyCall());
   $('btn-close-panel').addEventListener('click', () => selectTowerAt(-1, -1));
   $('btn-close-enemy').addEventListener('click', () => {
     selectedEnemy = null;
@@ -308,13 +308,18 @@ function startWave() {
   updateWaveBtn();
 }
 
-function earlyCall() {
+function earlyCall(target) {
   if (state !== 'playing' || waveIndex >= WAVES.length - 1) return;
-  const bonus = Math.max(0, Math.ceil(countdown)) * 6;
+  const want = target === undefined ? waveIndex + 1 : Math.min(target, WAVES.length - 1);
+  if (want <= waveIndex) return;
+  let bonus = 0;
+  for (let i = waveIndex + 1; i <= want; i++) {
+    bonus += Math.max(0, Math.ceil((i - barPos) * WAVE_BREAK)) * 6;
+  }
+  barPos = Math.max(barPos, want);
+  while (waveIndex < want) startWave();
   gold += bonus;
   if (bonus) toast('Early call: +' + bonus + ' gold.', true);
-  barPos = Math.max(barPos, waveIndex + 1);
-  startWave();
 }
 
 function updateWaves(dt) {
@@ -1112,6 +1117,7 @@ function buildWaveBar() {
     stone.innerHTML = `<span class="ws-num">${i + 1}</span>`;
     stone.addEventListener('mouseenter', () => showWaveTip(stone, i));
     stone.addEventListener('mouseleave', hideWaveTip);
+    stone.addEventListener('click', () => { hideWaveTip(); earlyCall(i); });
     track.appendChild(stone);
   });
 }

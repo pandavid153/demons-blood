@@ -347,7 +347,7 @@ html, body {
   background: linear-gradient(180deg, #241c25, #161019);
   border: 1px solid #423341;
   border-radius: 4px;
-  cursor: default;
+  cursor: pointer;
   transition: .12s;
 }
 .wavestone .ws-num { line-height: 1; }
