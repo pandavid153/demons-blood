@@ -60,7 +60,7 @@ const ENEMY_DEFS = {
   ghoul:    { name: 'Ghoul',            hp: 135,  speed: 62,  bounty: 13,  radius: 16, barW: 36, barH: 46 },
   wraith:   { name: 'Wraith',           hp: 85,   speed: 104, bounty: 16,  radius: 15, barW: 34, barH: 52 },
   colossus: { name: 'Bone Colossus',    hp: 720,  speed: 34,  bounty: 46,  radius: 26, barW: 54, barH: 72, clampHalf: 42 },
-  warden:   { name: 'The Blood Warden', hp: 4200, speed: 30,  bounty: 260, radius: 28, barW: 62, barH: 92, boss: true, lifeCost: 5, clampHalf: 80 }
+  warden:   { name: 'The Blood Warden', hp: 6300, speed: 30,  bounty: 260, radius: 28, barW: 62, barH: 92, boss: true, lifeCost: 5, clampHalf: 80 }
 };
 
 const TOWER_DEFS = {
