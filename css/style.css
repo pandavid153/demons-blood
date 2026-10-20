@@ -335,7 +335,6 @@ html, body {
 }
 #title-screen {
   background: linear-gradient(180deg, rgba(4,2,6,.25), rgba(4,2,6,.15) 45%, rgba(4,2,6,.75));
-  padding-right: 270px;
 }
 
 .title-logo { text-align: center; }
