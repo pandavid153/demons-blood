@@ -424,6 +424,11 @@ function updateEnemies(dt) {
     }
     e.walkPhase += step * 0.085;
 
+    const half = e.def.clampHalf || 0;
+    if (half && e.seg >= WAYPOINTS.length - 1 && e.x >= W - half) {
+      leakEnemy(e); enemies.splice(i, 1); continue;
+    }
+
     e.clampX = clampForEnemy(e);
   }
 }
