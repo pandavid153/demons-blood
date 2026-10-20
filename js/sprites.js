@@ -733,60 +733,79 @@ const Sprites = (() => {
   function drawSeekerSpire(ctx, x, y, level, o) {
     ctx.save();
     ctx.translate(x, y);
-    const F = o.fire > 0, t = o.t;
+    const t = o.t;
     const flick = Math.sin(t * 7) * 1.6;
-    const tk = 0;
+    const f = o.fire || 0;
+    const tcol = f <= 0 ? 0 : Math.min(1, f / 0.4);
     // shadow
     ctx.fillStyle = 'rgba(0,0,0,0.45)';
     ctx.beginPath(); ctx.ellipse(0, 12, 18, 6, 0, 0, TAU); ctx.fill();
-    // base plinth
+    // base plinth (matches others)
     const pb = ctx.createLinearGradient(0, 0, 0, 14);
-    pb.addColorStop(0, '#34242b'); pb.addColorStop(1, '#181015');
+    pb.addColorStop(0, '#3a2c34'); pb.addColorStop(1, '#161015');
     ctx.fillStyle = pb;
     ctx.beginPath(); ctx.moveTo(-16, 0); ctx.lineTo(16, 0); ctx.lineTo(12, 14); ctx.lineTo(-12, 14); ctx.closePath(); ctx.fill();
-    ctx.strokeStyle = 'rgba(0,0,0,0.7)'; ctx.lineWidth = 1.6; ctx.stroke();
-    ctx.fillStyle = '#21181d';
+    ctx.strokeStyle = 'rgba(0,0,0,0.75)'; ctx.lineWidth = 1.6; ctx.stroke();
+    ctx.fillStyle = '#22191e';
     ctx.beginPath(); ctx.moveTo(-13, 2); ctx.lineTo(13, 2); ctx.lineTo(10, 12); ctx.lineTo(-10, 12); ctx.closePath(); ctx.fill();
+    // tier plate
+    if (level >= 2) {
+      ctx.fillStyle = rgba('#e04552', 0.16);
+      ctx.beginPath(); ctx.moveTo(-12, 3); ctx.lineTo(12, 3); ctx.lineTo(9.5, 11); ctx.lineTo(-9.5, 11); ctx.closePath(); ctx.fill();
+    }
+    if (level >= 3) {
+      ctx.strokeStyle = rgba('#ff4d5a', 0.5); ctx.lineWidth = 1.4;
+      ctx.beginPath(); ctx.moveTo(-12, 3); ctx.lineTo(12, 3); ctx.lineTo(9.5, 11); ctx.lineTo(-9.5, 11); ctx.closePath(); ctx.stroke();
+    }
     // body
-    const bw = ctx.createLinearGradient(0, -6, 0, -48);
-    bw.addColorStop(0, '#4b333b'); bw.addColorStop(0.5, '#2b1b22'); bw.addColorStop(1, '#161016');
+    const baseH = -48 - level * 6;
+    const bw = ctx.createLinearGradient(0, -4, 0, baseH);
+    bw.addColorStop(0, '#52363f'); bw.addColorStop(0.5, '#2d1d24'); bw.addColorStop(1, '#161016');
     ctx.fillStyle = bw;
-    ctx.beginPath(); ctx.moveTo(-10, -2); ctx.lineTo(10, -2); ctx.lineTo(7, -44); ctx.lineTo(-7, -44); ctx.closePath(); ctx.fill();
+    ctx.beginPath(); ctx.moveTo(-10, -2); ctx.lineTo(10, -2); ctx.lineTo(7, baseH + 6); ctx.lineTo(-7, baseH + 6); ctx.closePath(); ctx.fill();
     ctx.strokeStyle = 'rgba(0,0,0,0.8)'; ctx.lineWidth = 1.8; ctx.stroke();
-    // rib
-    ctx.strokeStyle = 'rgba(224,69,82,0.28)'; ctx.lineWidth = 2;
-    ctx.beginPath(); ctx.moveTo(-8, -14); ctx.lineTo(8, -14); ctx.stroke();
-    ctx.beginPath(); ctx.moveTo(-7.5, -24); ctx.lineTo(7.5, -24); ctx.stroke();
-    ctx.beginPath(); ctx.moveTo(-7, -34); ctx.lineTo(7, -34); ctx.stroke();
-    // muzzle
-    ctx.save();
-    ctx.rotate(o.angle);
-    const bm = ctx.createLinearGradient(0, -8, 0, -56);
-    bm.addColorStop(0, '#5a3842'); bm.addColorStop(1, '#1a1317');
-    ctx.fillStyle = bm;
-    ctx.beginPath(); ctx.moveTo(-5, -6); ctx.lineTo(5, -6); ctx.lineTo(3.6, -56); ctx.lineTo(-3.6, -56); ctx.closePath(); ctx.fill();
+    // banding
+    ctx.strokeStyle = 'rgba(224,69,82,0.24)'; ctx.lineWidth = 2;
+    ctx.beginPath(); ctx.moveTo(-8, -12); ctx.lineTo(8, -12); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(-7.5, -22); ctx.lineTo(7.5, -22); ctx.stroke();
+    if (level >= 2) {
+      ctx.beginPath(); ctx.moveTo(-7, -32); ctx.lineTo(7, -32); ctx.stroke();
+    }
+    if (level >= 3) {
+      ctx.strokeStyle = 'rgba(255,72,84,0.36)'; ctx.lineWidth = 2;
+      ctx.beginPath(); ctx.moveTo(-6.6, baseH + 16); ctx.lineTo(6.6, baseH + 16); ctx.stroke();
+    }
+    // fixed spire top
+    const th = baseH;
+    const cap = ctx.createLinearGradient(0, th + 10, 0, th - 6);
+    cap.addColorStop(0, '#2a1b22'); cap.addColorStop(1, '#4a333d');
+    ctx.fillStyle = cap;
+    ctx.beginPath(); ctx.arc(0, th + 2, 9 + level * 1.2, 0, Math.PI); ctx.closePath(); ctx.fill();
     ctx.strokeStyle = 'rgba(0,0,0,0.8)'; ctx.lineWidth = 1.6; ctx.stroke();
-    // cooling vents
-    ctx.fillStyle = '#120d12';
-    ctx.beginPath(); ctx.arc(0, -18, 2.6, 0, TAU); ctx.fill();
-    ctx.beginPath(); ctx.arc(0, -28, 2.4, 0, TAU); ctx.fill();
-    // crystal/charge
+    ctx.fillStyle = '#161016';
+    ctx.beginPath(); ctx.arc(0, th + 2, 6 + level * 0.8, 0, Math.PI); ctx.closePath(); ctx.fill();
+    // orb at top (stationary, charges white->red)
     ctx.save(); ctx.globalCompositeOperation = 'lighter';
-    const f = o.fire || 0;
-    const tcol = f <= 0 ? 0 : Math.min(1, f / 0.4);
-    const orbR = 4 + tcol * 3;
-    const og = ctx.createRadialGradient(0, -58 + flick * 0.4, 1, 0, -58 + flick * 0.4, orbR * 2);
-    og.addColorStop(0, tcol < 0.4 ? '#ffffff' : '#fff0f0');
-    og.addColorStop(0.4, tcol < 0.5 ? 'rgba(255,255,255,0.8)' : 'rgba(255,60,70,0.9)');
+    const orbR = (4.2 + level * 0.8) + tcol * (3 + level * 0.6);
+    const og = ctx.createRadialGradient(0, th - 4 + flick * 0.3, 1, 0, th - 4 + flick * 0.3, orbR * 2);
+    og.addColorStop(0, tcol < 0.38 ? '#ffffff' : '#fff0f0');
+    og.addColorStop(0.42, tcol < 0.52 ? 'rgba(255,255,255,0.88)' : 'rgba(255,58,70,0.92)');
     og.addColorStop(1, 'rgba(255,40,50,0)');
     ctx.fillStyle = og;
-    ctx.beginPath(); ctx.arc(0, -58 + flick * 0.4, orbR * 1.6, 0, TAU); ctx.fill();
+    ctx.beginPath(); ctx.arc(0, th - 4 + flick * 0.3, orbR * 1.7, 0, TAU); ctx.fill();
     ctx.restore();
-    ctx.fillStyle = tcol < 0.35 ? '#fff4f4' : '#ffb4b8';
-    ctx.beginPath(); ctx.arc(0, -58 + flick * 0.4, orbR * 0.6, 0, TAU); ctx.fill();
+    ctx.fillStyle = tcol < 0.34 ? '#fff4f4' : '#ffb6ba';
+    ctx.beginPath(); ctx.arc(0, th - 4 + flick * 0.3, orbR * 0.58, 0, TAU); ctx.fill();
     ctx.fillStyle = '#ffffff';
-    ctx.beginPath(); ctx.arc(-0.8, -58.8 + flick * 0.4, orbR * 0.28, 0, TAU); ctx.fill();
-    ctx.restore();
+    ctx.beginPath(); ctx.arc(-0.7, th - 4.8 + flick * 0.3, orbR * 0.26, 0, TAU); ctx.fill();
+    // glow ring when charging
+    if (tcol > 0.1) {
+      ctx.save(); ctx.globalCompositeOperation = 'lighter';
+      ctx.strokeStyle = rgba(tcol < 0.5 ? '#ffffff' : '#ff2a2a', 0.35 + tcol * 0.4);
+      ctx.lineWidth = 2 + tcol;
+      ctx.beginPath(); ctx.arc(0, th - 4, orbR * 1.1, 0, TAU); ctx.stroke();
+      ctx.restore();
+    }
     ctx.restore();
   }
 
