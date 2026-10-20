@@ -421,7 +421,7 @@ html, body {
 
 /* ---------- toasts ---------- */
 #toasts {
-  position: absolute; left: 12px; bottom: 14px;
+  position: absolute; left: 12px; bottom: 48px;
   display: flex; flex-direction: column-reverse; gap: 6px;
   pointer-events: none;
 }

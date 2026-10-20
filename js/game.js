@@ -124,7 +124,7 @@ let state = 'title';           // title | playing | victory | defeat
 let paused = false;
 let speed = 1;
 let gold, lives, waveIndex, waveActive, spawnQueue, waveTimer, countdown;
-let barPos;
+let barPos, spawnClock, repelledUpTo;
 let enemies = [], towers = [], projectiles = [], particles = [], texts = [], decals = [], embers = [];
 let bossRef = null;
 let kills = 0, goldEarned = 0, timePlayed = 0;
@@ -217,6 +217,7 @@ function resetGame() {
   waveIndex = -1; waveActive = false; spawnQueue = []; waveTimer = 0;
   countdown = 14;
   barPos = -WAVE_LEAD;
+  spawnClock = 0; repelledUpTo = -1;
   enemies = []; towers = []; projectiles = []; particles = []; texts = []; decals = [];
   bossRef = null;
   kills = 0; goldEarned = 0; timePlayed = 0;
@@ -294,14 +295,12 @@ function toggleSpeed() {
 function startWave() {
   waveIndex++;
   const w = WAVES[waveIndex];
-  spawnQueue = [];
   for (const g of w.groups) {
     for (let i = 0; i < g.count; i++) {
-      spawnQueue.push({ type: g.type, t: g.delay + i * g.interval });
+      spawnQueue.push({ type: g.type, wave: waveIndex, at: spawnClock + g.delay + i * g.interval });
     }
   }
-  spawnQueue.sort((a, b) => a.t - b.t);
-  waveTimer = 0;
+  spawnQueue.sort((a, b) => a.at - b.at);
   waveActive = true;
   barPos = Math.max(barPos, waveIndex);
   showBanner('Wave ' + (waveIndex + 1), w.name);
@@ -310,7 +309,7 @@ function startWave() {
 }
 
 function earlyCall() {
-  if (state !== 'playing' || waveActive || waveIndex >= WAVES.length - 1) return;
+  if (state !== 'playing' || waveIndex >= WAVES.length - 1) return;
   const bonus = Math.max(0, Math.ceil(countdown)) * 6;
   gold += bonus;
   if (bonus) toast('Early call: +' + bonus + ' gold.', true);
@@ -319,38 +318,46 @@ function earlyCall() {
 }
 
 function updateWaves(dt) {
-  if (waveActive) {
-    waveTimer += dt;
-    while (spawnQueue.length && spawnQueue[0].t <= waveTimer) {
-      spawnEnemy(spawnQueue.shift().type);
-    }
-    if (!spawnQueue.length && !enemies.some(e => !e.dying)) {
-      waveActive = false;
-      if (waveIndex >= WAVES.length - 1) { victory(); return; }
-      toast('Wave ' + (waveIndex + 1) + ' repelled.');
-      updateWaveBtn();
-    }
+  // A shared, always-running spawn clock drives every wave's spawns, so a new
+  // wave fires on schedule even while a previous wave's monsters are alive.
+  spawnClock += dt;
+  while (spawnQueue.length && spawnQueue[0].at <= spawnClock) {
+    const s = spawnQueue.shift();
+    spawnEnemy(s.type, s.wave);
   }
 
   // The wave bar is a conveyor that never stops: barPos advances one stone per
-  // WAVE_BREAK, even while a wave is being fought. A wave arrives (spawns) the
-  // moment its stone reaches the left edge, but never overlaps a live wave.
+  // WAVE_BREAK. A wave spawns the instant its stone reaches the left edge.
   barPos += dt / WAVE_BREAK;
   countdown = Math.max(0, (waveIndex + 1 - barPos) * WAVE_BREAK);
 
-  if (waveIndex < WAVES.length - 1 && !waveActive && barPos >= waveIndex + 1) {
+  if (waveIndex < WAVES.length - 1 && barPos >= waveIndex + 1) {
     startWave();
   }
+
+  // A wave is repelled once all of its spawns have fired and none of its
+  // monsters remain on the field (they may outlive the next wave's arrival).
+  const liveWaves = new Set();
+  for (const e of enemies) if (!e.dying && !e.leaked) liveWaves.add(e.wave);
+  for (const s of spawnQueue) liveWaves.add(s.wave);
+  while (repelledUpTo + 1 <= waveIndex && !liveWaves.has(repelledUpTo + 1)) {
+    repelledUpTo++;
+    if (repelledUpTo < WAVES.length - 1) toast('Wave ' + (repelledUpTo + 1) + ' repelled.');
+  }
+
+  waveActive = spawnQueue.length > 0 || enemies.some(e => !e.dying && !e.leaked);
+  if (waveIndex >= WAVES.length - 1 && !waveActive) { victory(); return; }
 }
 
 /* ============================================================
    ENEMIES
    ============================================================ */
-function spawnEnemy(type) {
+function spawnEnemy(type, wave) {
   const def = ENEMY_DEFS[type];
   const half = def.clampHalf || 0;
   const e = {
     type, def,
+    wave: wave === undefined ? waveIndex : wave,
     x: Math.max(SPAWN_PT.x, half), y: SPAWN_PT.y,
     seg: 2,
     hp: def.hp, maxHp: def.hp,
