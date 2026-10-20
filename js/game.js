@@ -6,6 +6,7 @@
 /* ---------------- constants ---------------- */
 const W = 1152, H = 640, TILE = 64, COLS = 18, ROWS = 10;
 const WAVE_BREAK = 15;
+const WAVE_LEAD = 3;
 const START_GOLD = 220, START_LIVES = 20;
 
 const PATH_COOR = [
@@ -123,6 +124,7 @@ let state = 'title';           // title | playing | victory | defeat
 let paused = false;
 let speed = 1;
 let gold, lives, waveIndex, waveActive, spawnQueue, waveTimer, countdown;
+let barPos;
 let enemies = [], towers = [], projectiles = [], particles = [], texts = [], decals = [], embers = [];
 let bossRef = null;
 let kills = 0, goldEarned = 0, timePlayed = 0;
@@ -214,6 +216,7 @@ function resetGame() {
   gold = START_GOLD; lives = START_LIVES;
   waveIndex = -1; waveActive = false; spawnQueue = []; waveTimer = 0;
   countdown = 14;
+  barPos = -WAVE_LEAD;
   enemies = []; towers = []; projectiles = []; particles = []; texts = []; decals = [];
   bossRef = null;
   kills = 0; goldEarned = 0; timePlayed = 0;
@@ -300,17 +303,18 @@ function startWave() {
   spawnQueue.sort((a, b) => a.t - b.t);
   waveTimer = 0;
   waveActive = true;
-  countdown = WAVE_BREAK;
+  barPos = Math.max(barPos, waveIndex);
   showBanner('Wave ' + (waveIndex + 1), w.name);
   if (waveIndex === WAVES.length - 1) toast('A great darkness approaches…', true);
   updateWaveBtn();
 }
 
 function earlyCall() {
-  if (state !== 'playing' || waveActive || countdown <= 0) return;
+  if (state !== 'playing' || waveActive || waveIndex >= WAVES.length - 1) return;
   const bonus = Math.max(0, Math.ceil(countdown)) * 6;
   gold += bonus;
   if (bonus) toast('Early call: +' + bonus + ' gold.', true);
+  barPos = Math.max(barPos, waveIndex + 1);
   startWave();
 }
 
@@ -328,12 +332,14 @@ function updateWaves(dt) {
     }
   }
 
-  // The timer between waves runs continuously — it keeps ticking even while a
-  // wave is being fought, so the next wave starts on a steady cadence instead
-  // of resetting after every cleared wave.
-  if (waveIndex < WAVES.length - 1) {
-    if (countdown > 0) countdown = Math.max(0, countdown - dt);
-    if (countdown <= 0 && !waveActive) { countdown = 0; startWave(); }
+  // The wave bar is a conveyor that never stops: barPos advances one stone per
+  // WAVE_BREAK, even while a wave is being fought. A wave arrives (spawns) the
+  // moment its stone reaches the left edge, but never overlaps a live wave.
+  barPos += dt / WAVE_BREAK;
+  countdown = Math.max(0, (waveIndex + 1 - barPos) * WAVE_BREAK);
+
+  if (waveIndex < WAVES.length - 1 && !waveActive && barPos >= waveIndex + 1) {
+    startWave();
   }
 }
 
@@ -1103,30 +1109,27 @@ function buildWaveBar() {
   });
 }
 
-const WAVE_VISIBLE = 7;
-
 function updateWaveBar() {
   const track = $('wave-track');
   if (!track) return;
   const stones = track.children;
-  const activeIdx = waveActive ? waveIndex : (countdown > 0 ? waveIndex + 1 : waveIndex);
+  if (!stones.length) return;
+  const step = stones.length > 1 ? stones[1].offsetLeft - stones[0].offsetLeft : stones[0].offsetWidth
+             || stones[0].getBoundingClientRect().width;
+  // Conveyor: barPos is where the left edge sits on the stone axis. Each stone
+  // sits at (i - barPos) steps from the left edge, so the whole strip keeps
+  // moving left forever. Stones that reach the left edge disappear.
+  const pos = barPos === undefined ? -WAVE_LEAD : barPos;
+  const currentIdx = Math.floor(pos);
+  const scroll = pos * step;
+  track.style.transform = 'translateX(' + (-scroll) + 'px)';
   for (let i = 0; i < stones.length; i++) {
     const el = stones[i];
-    el.classList.toggle('done', i < activeIdx);
-    el.classList.toggle('current', i === activeIdx && state === 'playing');
-    el.classList.toggle('soon', i === activeIdx + 1 && state === 'playing');
+    el.classList.toggle('passed', i < pos);
+    el.classList.toggle('done', i < currentIdx);
+    el.classList.toggle('current', i === currentIdx && state === 'playing');
+    el.classList.toggle('soon', i === currentIdx + 1 && state === 'playing');
   }
-  if (state !== 'playing') return;
-  const maxStart = Math.max(0, WAVES.length - WAVE_VISIBLE);
-  // The timer runs continuously, so drive the strip from a single continuous
-  // position that never resets: it counts up by one for every wave as the
-  // countdown drains, with no backward jump when a new wave begins.
-  const frac = Math.min(1, Math.max(0, 1 - countdown / WAVE_BREAK));
-  const pos = waveIndex < 0 ? frac : waveIndex + frac;
-  const start = Math.min(Math.max(pos - 1, 0), maxStart);
-  const step = stones.length > 1 ? stones[1].offsetLeft - stones[0].offsetLeft : 0;
-  const scroll = Math.max(0, start) * step;
-  track.style.transform = 'translateX(' + (-scroll) + 'px)';
 }
 
 function showWaveTip(stone, index) {
