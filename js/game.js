@@ -157,6 +157,8 @@ function init() {
       else { selectedType = type; selectTowerAt(-1, -1); }
       updateCards();
     });
+    card.addEventListener('mouseenter', () => showTowerTip(card, type));
+    card.addEventListener('mouseleave', hideTowerTip);
   });
 
   canvas.addEventListener('mousemove', onMouseMove);
@@ -1067,6 +1069,35 @@ function renderPanel() {
     upBtn.disabled = gold < up;
   }
   $('btn-sell').textContent = 'Sell — ' + Math.floor(tw.spent * 0.6) + ' g';
+}
+
+function showTowerTip(card, type) {
+  const tip = $('tower-tip');
+  const def = TOWER_DEFS[type];
+  const lv = def.levels[0];
+  const rows = [];
+  rows.push(['Damage', Math.round(lv.dmg)]);
+  rows.push(['Range', Math.round(lv.range)]);
+  rows.push(['Attacks / s', (1 / lv.rate).toFixed(2)]);
+  if (type === 'blood') rows.push(['Targets', 'First']);
+  if (type === 'frost') rows.push(['Slow', Math.round(lv.slow * 100) + '% · ' + lv.slowDur + 's']);
+  if (type === 'doom') rows.push(['Splash', Math.round(lv.splash) + ' px']);
+  if (type === 'soul') rows.push(['Poison', lv.poisonDps + '/s · ' + lv.poisonDur + 's']);
+  tip.innerHTML =
+    `<div class="tt-name">${def.name}</div>` +
+    `<div class="tt-cost">Cost ${def.cost} gold</div>` +
+    `<div class="tt-desc">${def.desc}</div>` +
+    `<ul class="tt-stats">${rows.map(r => `<li><span>${r[0]}</span><span>${r[1]}</span></li>`).join('')}</ul>`;
+  const stageRect = stage.getBoundingClientRect();
+  const cr = card.getBoundingClientRect();
+  const scale = stage.offsetWidth ? stageRect.width / stage.offsetWidth : 1;
+  const top = (cr.top - stageRect.top) / scale - 8;
+  tip.style.top = Math.max(4, top) + 'px';
+  tip.classList.remove('hidden');
+}
+
+function hideTowerTip() {
+  $('tower-tip').classList.add('hidden');
 }
 
 function showBanner(main, sub) {

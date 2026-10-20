@@ -218,6 +218,44 @@ html, body {
 }
 .panel-btn.alt:hover { background: linear-gradient(180deg, #4a3f49, #2b232d); box-shadow: 0 0 10px rgba(0,0,0,.6); }
 
+/* ---------- tower shop hover tooltip ---------- */
+#tower-tip {
+  position: absolute;
+  right: 272px;
+  width: 236px;
+  padding: 9px 11px 10px;
+  background: linear-gradient(180deg, rgba(32,24,34,.98), rgba(14,10,16,.98));
+  border: 1px solid var(--panel-line);
+  border-right: 3px solid var(--blood);
+  border-radius: 6px;
+  box-shadow: 0 10px 30px rgba(0,0,0,.7), inset 0 1px 0 rgba(255,255,255,.05);
+  pointer-events: none;
+  z-index: 6;
+}
+#tower-tip.hidden { display: none; }
+.tt-name {
+  font-family: "Cinzel", serif; font-size: 14px; font-weight: 700;
+  color: var(--bone); line-height: 1.1;
+}
+.tt-cost {
+  font-size: 12px; font-weight: 600; color: var(--gold); margin: 2px 0 6px;
+}
+.tt-desc {
+  font-size: 12px; font-style: italic; color: var(--text-dim);
+  line-height: 1.35; margin-bottom: 7px;
+}
+.tt-stats {
+  list-style: none;
+  display: grid; grid-template-columns: 1fr 1fr; gap: 0 12px;
+}
+.tt-stats li {
+  display: flex; justify-content: space-between;
+  font-size: 12px; padding: 1px 0;
+  border-bottom: 1px dotted rgba(120,100,110,.3);
+}
+.tt-stats li span:first-child { color: var(--text-dim); }
+.tt-stats li span:last-child { color: var(--bone); font-weight: 600; }
+
 /* ---------- shop ---------- */
 #shop {
   position: absolute; left: 1054px; top: 56px;
