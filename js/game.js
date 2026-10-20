@@ -190,6 +190,8 @@ function init() {
   $('btn-menu-win').addEventListener('click', toMenu);
   $('btn-menu-lose').addEventListener('click', toMenu);
 
+  buildWaveBar();
+
   fit();
   resetGame();
   canvas.classList.add('title-bg');
@@ -1069,6 +1071,7 @@ function syncHUD() {
   }
 
   if (selectedEnemy) renderEnemyPanel();
+  updateWaveBar();
 }
 
 function updateCards() {
@@ -1080,6 +1083,62 @@ function updateCards() {
     const cv = card.querySelector('.cost-val');
     if (cv) cv.textContent = cost;
   });
+}
+
+function buildWaveBar() {
+  const bar = $('wave-bar');
+  bar.innerHTML = '';
+  WAVES.forEach((w, i) => {
+    const stone = document.createElement('div');
+    stone.className = 'wavestone';
+    stone.dataset.index = i;
+    stone.innerHTML = `<span class="ws-num">${i + 1}</span>`;
+    stone.addEventListener('mouseenter', () => showWaveTip(stone, i));
+    stone.addEventListener('mouseleave', hideWaveTip);
+    bar.appendChild(stone);
+  });
+}
+
+function updateWaveBar() {
+  const activeIdx = waveActive ? waveIndex : (countdown > 0 ? waveIndex + 1 : waveIndex);
+  const stones = $('wave-bar').children;
+  for (let i = 0; i < stones.length; i++) {
+    const el = stones[i];
+    el.classList.toggle('done', i < activeIdx);
+    el.classList.toggle('current', i === activeIdx && state === 'playing');
+    el.classList.toggle('soon', i === activeIdx + 1 && state === 'playing');
+  }
+}
+
+function showWaveTip(stone, index) {
+  const tip = $('wave-tip');
+  const w = WAVES[index];
+  const rows = w.groups.map(g => {
+    const def = ENEMY_DEFS[g.type];
+    return `<div class="wt-row">` +
+      `<span class="wt-enemy">${def.name} <span class="wt-count">×${g.count}</span></span>` +
+      `<span class="wt-meta">${def.hp} HP</span>` +
+      `</div>`;
+  }).join('');
+  tip.innerHTML =
+    `<div class="wt-title">Wave ${index + 1}: ${w.name}</div>` +
+    `<div class="wt-sub">${totalCount(w)} enemies</div>` + rows;
+  const stageRect = stage.getBoundingClientRect();
+  const sr = stone.getBoundingClientRect();
+  const scale = stage.offsetWidth ? stageRect.width / stage.offsetWidth : 1;
+  const left = (sr.left - stageRect.left) / scale + sr.width / scale / 2 - 125;
+  tip.style.left = Math.max(4, Math.min(1314 - 254, left)) + 'px';
+  tip.style.top = (sr.top - stageRect.top) / scale - 8 + 'px';
+  tip.style.transform = 'translateY(-100%)';
+  tip.classList.remove('hidden');
+}
+
+function hideWaveTip() {
+  $('wave-tip').classList.add('hidden');
+}
+
+function totalCount(w) {
+  return w.groups.reduce((n, g) => n + g.count, 0);
 }
 
 function updateWaveBtn() {

@@ -319,6 +319,71 @@ html, body {
 }
 .tower-card.cant .tc-cost { color: #d4525f; }
 
+/* ---------- upcoming-waves bar (bottom of the field) ---------- */
+#wave-bar {
+  position: absolute; left: 0; top: 628px;
+  width: 1044px; height: 32px;
+  display: flex; align-items: center; gap: 5px;
+  padding: 0 8px;
+  background: linear-gradient(180deg, rgba(18,12,18,.96), rgba(8,5,9,.98));
+  border-top: 1px solid rgba(120,86,98,.5);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.04);
+  pointer-events: auto;
+  z-index: 3;
+}
+.wavestone {
+  position: relative;
+  flex: 1 1 0;
+  min-width: 0;
+  height: 22px;
+  display: flex; align-items: center; justify-content: center;
+  font-family: "Cinzel", serif; font-size: 12px; font-weight: 700;
+  color: #9a8792;
+  background: linear-gradient(180deg, #241c25, #161019);
+  border: 1px solid #423341;
+  border-radius: 4px;
+  cursor: default;
+  transition: .12s;
+}
+.wavestone .ws-num { line-height: 1; }
+.wavestone.done { color: #5f525c; border-color: #2e2530; background: #100b12; }
+.wavestone.current {
+  color: #ffe4e7;
+  background: linear-gradient(180deg, #7d1a26, #4c0f18);
+  border-color: #b8394a;
+  box-shadow: 0 0 12px rgba(224,45,62,.6);
+}
+.wavestone.soon { color: #cdb9c6; border-color: #55454f; }
+.wavestone:hover { border-color: var(--blood-bright); color: #fff; }
+.wavestone.current:hover { color: #fff; }
+
+#wave-tip {
+  position: absolute; left: 0; top: 0;
+  width: 250px;
+  padding: 8px 11px 9px;
+  background: linear-gradient(180deg, rgba(32,24,34,.98), rgba(14,10,16,.98));
+  border: 1px solid var(--panel-line);
+  border-bottom: 3px solid var(--blood);
+  border-radius: 6px;
+  box-shadow: 0 10px 30px rgba(0,0,0,.7), inset 0 1px 0 rgba(255,255,255,.05);
+  pointer-events: none;
+  z-index: 7;
+}
+#wave-tip.hidden { display: none; }
+.wt-title {
+  font-family: "Cinzel", serif; font-size: 13.5px; font-weight: 700;
+  color: var(--bone); line-height: 1.15;
+}
+.wt-sub { font-size: 11.5px; font-style: italic; color: var(--gold); margin: 1px 0 6px; }
+.wt-row {
+  display: flex; align-items: baseline; justify-content: space-between;
+  gap: 8px; font-size: 12px; padding: 2px 0;
+  border-bottom: 1px dotted rgba(120,100,110,.3);
+}
+.wt-row .wt-enemy { color: var(--bone); font-weight: 600; }
+.wt-row .wt-enemy .wt-count { color: var(--gold); font-weight: 700; margin-left: 3px; }
+.wt-row .wt-meta { color: var(--text-dim); white-space: nowrap; }
+
 /* ---------- wave button ---------- */
 #btn-wave {
   position: absolute; left: 1054px; bottom: 14px;
