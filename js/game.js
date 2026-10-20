@@ -655,11 +655,25 @@ function updateTowers(dt) {
       const lv = TOWER_DEFS[tw.type].levels[tw.level - 1];
       const chargeMax = lv.chargeMax || 2.0;
       if (!tw.seekTarget || tw.seekTarget.dying || tw.seekTarget.leaked) {
-        tw.seekTarget = findTarget(tw, lv.range);
-        if (!tw.seekTarget) { tw.charge = 0; continue; }
+        const newTarget = findTarget(tw, lv.range);
+        if (newTarget) {
+          tw.seekTarget = newTarget;
+        } else {
+          tw.charge = 0;
+          continue;
+        }
       } else {
         const d = Math.hypot(tw.seekTarget.x - tw.x, tw.seekTarget.y - tw.y);
-        if (d > lv.range + tw.seekTarget.def.radius) { tw.seekTarget = null; tw.charge = 0; continue; }
+        if (d > lv.range + tw.seekTarget.def.radius) {
+          const newTarget = findTarget(tw, lv.range);
+          if (newTarget) {
+            tw.seekTarget = newTarget;
+          } else {
+            tw.seekTarget = null;
+            tw.charge = 0;
+            continue;
+          }
+        }
       }
       const target = tw.seekTarget;
       const ang = Math.atan2((target.y - 6) - (tw.y - 50), target.x - tw.x);
