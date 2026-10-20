@@ -35,7 +35,19 @@ html, body {
   background: #0a070c;
   box-shadow: 0 0 80px rgba(0,0,0,.9);
 }
-#game { position: absolute; inset: 0; display: block; }
+/* Inset the map so there is a clear margin between the level and the HUD.
+   The canvas keeps its 1152x640 buffer but is visually scaled down and
+   placed inside the stage, leaving room for the HUD on the top and right. */
+#game {
+  position: absolute;
+  left: 0; top: 46px;
+  width: 1152px; height: 640px;
+  transform-origin: 0 0;
+  transform: scale(0.82, 0.87);
+  display: block;
+  border-radius: 0 4px 4px 0;
+  box-shadow: 0 0 0 1px #3a2b36;
+}
 
 /* ============================================================
    HUD
