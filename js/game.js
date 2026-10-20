@@ -314,7 +314,7 @@ function earlyCall(target) {
   if (want <= waveIndex) return;
   let bonus = 0;
   for (let i = waveIndex + 1; i <= want; i++) {
-    bonus += Math.max(0, Math.ceil((i - barPos) * WAVE_BREAK)) * 6;
+    bonus += Math.round(Math.max(0, Math.ceil((i - barPos) * WAVE_BREAK)) * 1.5);
   }
   barPos = Math.max(barPos, want);
   while (waveIndex < want) startWave();
@@ -1189,7 +1189,7 @@ function updateWaveBtn() {
     btn.disabled = true;
   } else {
     label.textContent = 'Call Wave ' + (waveIndex + 2);
-    bonus.textContent = '+' + Math.max(0, Math.ceil(countdown)) * 6 + ' gold';
+    bonus.textContent = '+' + Math.round(Math.max(0, Math.ceil(countdown)) * 1.5) + ' gold';
     btn.disabled = countdown <= 0;
   }
 }
