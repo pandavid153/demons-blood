@@ -730,11 +730,49 @@ const Sprites = (() => {
     ctx.restore();
   }
 
+  function drawSeekerSpire(ctx, x, y, level, o) {
+    ctx.save();
+    ctx.translate(x, y);
+    const fy = -42;
+    ctx.fillStyle = 'rgba(0,0,0,0.45)';
+    ctx.beginPath(); ctx.ellipse(0, 12, 16, 6, 0, 0, TAU); ctx.fill();
+    const base = ctx.createLinearGradient(0, 0, 0, 10);
+    base.addColorStop(0, '#3a2d36'); base.addColorStop(1, '#151016');
+    ctx.fillStyle = base;
+    ctx.beginPath(); ctx.roundRect ? ctx.roundRect(-14, -6, 28, 16, 4) : (()=>{ctx.moveTo(-14,-6);ctx.arcTo(14,-6,14,10,4);ctx.arcTo(14,10,-14,10,4);ctx.arcTo(-14,10,-14,-6,4);ctx.arcTo(-14,-6,14,-6,4);})(); ctx.fill();
+    ctx.strokeStyle = 'rgba(255,70,80,0.6)'; ctx.lineWidth = 1.4; ctx.stroke();
+    ctx.fillStyle = '#1c151b';
+    ctx.beginPath(); ctx.roundRect ? ctx.roundRect(-10, -2, 20, 8, 2) : 0; if(ctx.roundRect) ctx.fill();
+    ctx.save();
+    ctx.rotate(o.angle);
+    const f = o.fire || 0;
+    const c = ctx.createLinearGradient(0, -6, 0, fy);
+    c.addColorStop(0, '#5a4d56'); c.addColorStop(1, '#1a1319');
+    ctx.fillStyle = c;
+    ctx.beginPath(); ctx.moveTo(-7, -6); ctx.lineTo(7, -6); ctx.lineTo(4, fy + 8); ctx.lineTo(-4, fy + 8); ctx.closePath(); ctx.fill();
+    ctx.strokeStyle = 'rgba(255,80,90,0.5)'; ctx.lineWidth = 1.2; ctx.stroke();
+    ctx.save(); ctx.globalCompositeOperation = 'lighter';
+    const g = ctx.createRadialGradient(0, fy, 2, 0, fy, 16);
+    const tcol = f < 0.01 ? 0 : Math.min(1, f / 0.4);
+    const r = Math.floor(255);
+    const gcol = Math.floor(255 * (1 - tcol));
+    const bcol = Math.floor(255 * (1 - tcol));
+    ctx.fillStyle = rgba(`rgb(${r},${gcol},${bcol})`, 0.9);
+    ctx.beginPath(); ctx.arc(0, fy, 5 + tcol * 3, 0, TAU); ctx.fill();
+    glow(ctx, 0, fy, 18 + tcol * 14, tcol < 0.5 ? '#ffffff' : '#ff2a2a', 0.8 + tcol * 0.2);
+    ctx.restore();
+    ctx.fillStyle = '#ffffff';
+    ctx.beginPath(); ctx.arc(0, fy, 2 + tcol * 1.2, 0, TAU); ctx.fill();
+    ctx.restore();
+    ctx.restore();
+  }
+
   const TOWER_PAINT = {
     blood: drawBloodSpire,
     frost: drawFrostShrine,
     doom: drawDoomSpire,
-    soul: drawSoulAltar
+    soul: drawSoulAltar,
+    seeker: drawSeekerSpire
   };
 
   function drawTower(ctx, type, x, y, level, o) {
@@ -1542,6 +1580,31 @@ const Sprites = (() => {
       ctx.restore();
       ctx.fillStyle = rgba('#dffaff', 0.7);
       ctx.beginPath(); ctx.arc(p.x - Math.cos(a) * 7, p.y - Math.sin(a) * 7, 1.6, 0, TAU); ctx.fill();
+    } else if (p.type === 'seeker') {
+      const a = Math.atan2(p.vy, p.vx);
+      const len = 90;
+      ctx.save();
+      ctx.globalCompositeOperation = 'lighter';
+      ctx.strokeStyle = rgba('#ffffff', 0.9);
+      ctx.lineWidth = 10;
+      ctx.beginPath();
+      ctx.moveTo(p.x - Math.cos(a) * len, p.y - Math.sin(a) * len);
+      ctx.lineTo(p.x, p.y);
+      ctx.stroke();
+      ctx.strokeStyle = rgba('#ff3a3a', 1);
+      ctx.lineWidth = 5;
+      ctx.beginPath();
+      ctx.moveTo(p.x - Math.cos(a) * len, p.y - Math.sin(a) * len);
+      ctx.lineTo(p.x, p.y);
+      ctx.stroke();
+      ctx.strokeStyle = '#ffffff';
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.moveTo(p.x - Math.cos(a) * len, p.y - Math.sin(a) * len);
+      ctx.lineTo(p.x, p.y);
+      ctx.stroke();
+      glow(ctx, p.x, p.y, 18, '#ff2f2f', 1);
+      ctx.restore();
     } else if (p.type === 'doom') {
       for (let i = 0; i < p.trail.length; i++) {
         const tr = p.trail[i], a = i / p.trail.length;

@@ -100,10 +100,19 @@ const TOWER_DEFS = {
       { up: 95,  dmg: 17, range: 210, rate: 0.95, poisonDps: 16, poisonDur: 3.5 },
       { up: 150, dmg: 30, range: 230, rate: 0.85, poisonDps: 28, poisonDur: 4.0 }
     ]
+  },
+  seeker: {
+    name: 'Seeker Spire', cost: 120, color: '#ff4455', proj: 'seeker',
+    desc: 'Sniper that locks onto one enemy, charging a white-to-red laser and unleashing a devastating beam on full charge.',
+    levels: [
+      { dmg: 95, range: 230, rate: 0.35, chargeMax: 2.0 },
+      { up: 150, dmg: 170, range: 248, rate: 0.32, chargeMax: 2.0 },
+      { up: 220, dmg: 290, range: 268, rate: 0.30, chargeMax: 2.0 }
+    ]
   }
 };
 
-const PROJ_SPEED = { blood: 540, frost: 470, doom: 380, soul: 430 };
+const PROJ_SPEED = { blood: 540, frost: 470, doom: 380, soul: 430, seeker: 0 };
 
 const WAVES = [
   { name: 'Scouting Imps',      groups: [ { type: 'imp', count: 8, interval: 0.9, delay: 0 } ] },
@@ -642,6 +651,28 @@ function findTarget(tw, range) {
 function updateTowers(dt) {
   for (const tw of towers) {
     if (tw.fire > 0) tw.fire = Math.max(0, tw.fire - dt * 4);
+    if (tw.type === 'seeker') {
+      const lv = TOWER_DEFS[tw.type].levels[tw.level - 1];
+      const chargeMax = lv.chargeMax || 2.0;
+      if (!tw.seekTarget || tw.seekTarget.dying || tw.seekTarget.leaked) {
+        tw.seekTarget = findTarget(tw, lv.range);
+        if (!tw.seekTarget) { tw.charge = 0; continue; }
+      } else {
+        const d = Math.hypot(tw.seekTarget.x - tw.x, tw.seekTarget.y - tw.y);
+        if (d > lv.range + tw.seekTarget.def.radius) { tw.seekTarget = null; tw.charge = 0; continue; }
+      }
+      const target = tw.seekTarget;
+      const ang = Math.atan2((target.y - 6) - (tw.y - 50), target.x - tw.x);
+      tw.angle = ang;
+      tw.charge = (tw.charge || 0) + dt;
+      tw.fire = Math.min(0.4, (tw.charge / chargeMax) * 0.4);
+      if (tw.charge >= chargeMax) {
+        fireTower(tw, target, lv);
+        tw.charge = 0;
+        tw.seekTarget = null;
+      }
+      continue;
+    }
     tw.cooldown -= dt;
     const lv = TOWER_DEFS[tw.type].levels[tw.level - 1];
     const target = findTarget(tw, lv.range);
@@ -659,16 +690,29 @@ function fireTower(tw, target, lv) {
   tw.fire = 0.26;
   const mx = tw.x + Math.cos(tw.angle) * 16;
   const my = tw.y - 50 + Math.sin(tw.angle) * 16;
-  projectiles.push({
-    type: def.proj, x: mx, y: my,
-    tx: target.x, ty: target.y - 6,
-    target, src: tw,
-    speed: PROJ_SPEED[def.proj], vx: 0, vy: 0,
-    dmg: lv.dmg, splash: lv.splash || 0,
-    slow: lv.slow || 0, slowDur: lv.slowDur || 0,
-    poisonDps: lv.poisonDps || 0, poisonDur: lv.poisonDur || 0,
-    trail: [], life: 4
-  });
+  if (def.proj === 'seeker') {
+    projectiles.push({
+      type: 'seeker', x: mx, y: my,
+      tx: target.x, ty: target.y - 6,
+      target, src: tw,
+      speed: 2800, vx: 0, vy: 0,
+      dmg: lv.dmg, splash: 0,
+      slow: 0, slowDur: 0,
+      poisonDps: 0, poisonDur: 0,
+      trail: [], life: 0.25
+    });
+  } else {
+    projectiles.push({
+      type: def.proj, x: mx, y: my,
+      tx: target.x, ty: target.y - 6,
+      target, src: tw,
+      speed: PROJ_SPEED[def.proj], vx: 0, vy: 0,
+      dmg: lv.dmg, splash: lv.splash || 0,
+      slow: lv.slow || 0, slowDur: lv.slowDur || 0,
+      poisonDps: lv.poisonDps || 0, poisonDur: lv.poisonDur || 0,
+      trail: [], life: 4
+    });
+  }
   for (let i = 0; i < 3; i++) {
     addParticle({
       kind: 'spark', x: mx, y: my,
