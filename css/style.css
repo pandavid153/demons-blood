@@ -36,13 +36,13 @@ html, body {
   box-shadow: 0 0 80px rgba(0,0,0,.9);
 }
 /* The level is drawn into its own smaller box on the left of the stage so the
-   tower interface, stats and controls fit alongside it in the right sidebar. */
+   tower interface, stats and controls fit alongside it in the right sidebar.
+   The canvas buffer stays 1152x640 but its CSS box (and therefore its hit
+   area) is reduced, so the browser scales the drawing to fit. */
 #game {
   position: absolute;
   left: 0; top: 44px;
-  width: 1152px; height: 640px;
-  transform-origin: 0 0;
-  transform: scale(0.90625, 0.9125);
+  width: 1044px; height: 584px;
   display: block;
   border-radius: 0 4px 4px 0;
   box-shadow: 0 0 0 1px #3a2b36;
