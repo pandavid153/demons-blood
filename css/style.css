@@ -154,7 +154,7 @@ html, body {
 }
 
 /* ---------- info panel ---------- */
-#info-panel {
+#info-panel, #enemy-panel {
   position: absolute; left: 1054px; bottom: 88px;
   width: 250px;
   padding: 8px 12px 10px;
@@ -166,39 +166,40 @@ html, body {
   pointer-events: auto;
   z-index: 4;
 }
-#btn-close-panel {
+#enemy-panel { border-top-color: #7a5f74; }
+#btn-close-panel, #btn-close-enemy {
   position: absolute; top: 4px; right: 8px;
   background: none; border: none; color: var(--text-dim);
   font-size: 18px; line-height: 1; cursor: pointer;
 }
-#btn-close-panel:hover { color: var(--blood-bright); }
-.ip-gem {
+#btn-close-panel:hover, #btn-close-enemy:hover { color: var(--blood-bright); }
+.ip-gem, #ep-gem {
   width: 30px; height: 30px; margin: 0 auto 3px;
   border-radius: 50%;
   border: 1px solid #55414f;
   background: radial-gradient(circle at 35% 30%, #3a2c3a, #14101a);
   box-shadow: inset 0 0 12px rgba(0,0,0,.8);
 }
-#ip-title {
+#ip-title, #ep-title {
   text-align: center; font-family: "Cinzel", serif;
   font-size: 15px; font-weight: 700; color: var(--bone);
   line-height: 1.1;
 }
-#ip-level {
+#ip-level, #ep-sub {
   text-align: center; font-size: 12px; font-style: italic;
   color: var(--gold); letter-spacing: 1.5px; margin-bottom: 5px;
 }
-#ip-stats {
+#ip-stats, #ep-stats {
   list-style: none; margin-bottom: 6px;
   display: grid; grid-template-columns: 1fr 1fr; gap: 0 14px;
 }
-#ip-stats li {
+#ip-stats li, #ep-stats li {
   display: flex; justify-content: space-between;
   font-size: 12.5px; padding: 1px 2px;
   border-bottom: 1px dotted rgba(120,100,110,.3);
 }
-#ip-stats li span:first-child { color: var(--text-dim); }
-#ip-stats li span:last-child { color: var(--bone); font-weight: 600; }
+#ip-stats li span:first-child, #ep-stats li span:first-child { color: var(--text-dim); }
+#ip-stats li span:last-child, #ep-stats li span:last-child { color: var(--bone); font-weight: 600; }
 
 .panel-btn {
   display: block; width: 100%; margin-top: 5px;

@@ -127,7 +127,7 @@ let enemies = [], towers = [], projectiles = [], particles = [], texts = [], dec
 let bossRef = null;
 let kills = 0, goldEarned = 0, timePlayed = 0;
 let shake = 0;
-let selectedType = null, selectedTower = null;
+let selectedType = null, selectedTower = null, selectedEnemy = null;
 let mouse = { x: -99, y: -99, tx: -1, ty: -1, inside: false };
 let bgCanvas = null;
 let visualT = 0;
@@ -179,6 +179,10 @@ function init() {
   $('btn-speed').addEventListener('click', toggleSpeed);
   $('btn-wave').addEventListener('click', earlyCall);
   $('btn-close-panel').addEventListener('click', () => selectTowerAt(-1, -1));
+  $('btn-close-enemy').addEventListener('click', () => {
+    selectedEnemy = null;
+    $('enemy-panel').classList.add('hidden');
+  });
   $('btn-upgrade').addEventListener('click', upgradeSelected);
   $('btn-sell').addEventListener('click', sellSelected);
   $('btn-replay-win').addEventListener('click', startGame);
@@ -212,7 +216,8 @@ function resetGame() {
   bossRef = null;
   kills = 0; goldEarned = 0; timePlayed = 0;
   shake = 0; paused = false; speed = 1;
-  selectedType = null; selectedTower = null;
+  selectedType = null; selectedTower = null; selectedEnemy = null;
+  $('enemy-panel').classList.add('hidden');
   hudCache = {}; waveBtnSecond = -1;
   $('hud').classList.add('hidden');
   $('info-panel').classList.add('hidden');
@@ -796,7 +801,34 @@ function onMouseDown(ev) {
   if (ev.button === 2) return;
   if (!mouse.inside) return;
   if (selectedType) tryPlace(mouse.tx, mouse.ty);
-  else selectTowerAt(mouse.tx, mouse.ty);
+  else selectAt(mouse.x, mouse.y);
+}
+
+function enemyAt(x, y) {
+  let best = null, bestD = Infinity;
+  for (const e of enemies) {
+    if (e.dying || e.leaked) continue;
+    const hit = Math.max(e.def.radius + 10, 20);
+    const d = Math.hypot(e.x - x, e.y - y);
+    if (d <= hit && d < bestD) { best = e; bestD = d; }
+  }
+  return best;
+}
+
+function selectAt(x, y) {
+  const e = enemyAt(x, y);
+  if (e) {
+    selectedEnemy = e;
+    selectedTower = null;
+    selectedType = null;
+    renderEnemyPanel();
+    renderPanel();
+    updateCards();
+    return;
+  }
+  selectedEnemy = null;
+  $('enemy-panel').classList.add('hidden');
+  selectTowerAt(mouse.tx, mouse.ty);
 }
 
 function onKey(ev) {
@@ -820,9 +852,33 @@ function onKey(ev) {
 
 function selectTowerAt(tx, ty) {
   selectedTower = towers.find(t => t.tx === tx && t.ty === ty) || null;
-  if (selectedTower) selectedType = null;
+  if (selectedTower) { selectedType = null; selectedEnemy = null; $('enemy-panel').classList.add('hidden'); }
   renderPanel();
   updateCards();
+}
+
+function renderEnemyPanel() {
+  const panel = $('enemy-panel');
+  const e = selectedEnemy;
+  if (!e || e.dying || e.leaked || !enemies.includes(e)) {
+    selectedEnemy = null;
+    panel.classList.add('hidden');
+    return;
+  }
+  const def = e.def;
+  panel.classList.remove('hidden');
+  $('ep-title').textContent = def.name;
+  $('ep-sub').textContent = def.boss ? 'Boss' : 'Foe';
+  const gemFill = def.boss ? '#e04552' : '#8a6a7a';
+  $('ep-gem').style.background =
+    `radial-gradient(circle at 34% 28%, ${Sprites.lighten(gemFill, 0.5)}, ${gemFill} 45%, ${Sprites.darken(gemFill, 0.7)})`;
+
+  const rows = [];
+  rows.push(['Health', Math.max(0, Math.ceil(e.hp)) + ' / ' + e.maxHp]);
+  rows.push(['Bounty', e.def.bounty + ' g']);
+  rows.push(['Speed', Math.round(def.speed)]);
+  rows.push(['Portal cost', (def.lifeCost || 1) + ' HP']);
+  $('ep-stats').innerHTML = rows.map(r => `<li><span>${r[0]}</span><span>${r[1]}</span></li>`).join('');
 }
 
 function upgradeSelected() {
@@ -1011,6 +1067,8 @@ function syncHUD() {
     const frac = Math.max(0, bossRef.hp / bossRef.maxHp);
     $('boss-fill').style.width = (frac * 100) + '%';
   }
+
+  if (selectedEnemy) renderEnemyPanel();
 }
 
 function updateCards() {
