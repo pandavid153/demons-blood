@@ -388,6 +388,15 @@ function startWave() {
   barPos = Math.max(barPos, waveIndex);
   showBanner('Wave ' + (waveIndex + 1), w.name);
   if (waveIndex === WAVES.length - 1) toast('A great darkness approaches…', true);
+  // if this wave spawns multiple wardens, never show big boss bar
+  const wardenInWave = (w.groups||[]).reduce((s,g)=>s + (g.type==='warden'?g.count:0),0);
+  if (wardenInWave > 1) {
+    bossRef = null;
+    $('boss-bar').classList.add('hidden');
+    window.__MULTI_WARDEN_WAVE = true;
+  } else {
+    window.__MULTI_WARDEN_WAVE = false;
+  }
   updateWaveBtn();
 }
 
@@ -471,14 +480,18 @@ function spawnEnemy(type, wave) {
     });
   }
   if (def.boss) {
-    // only show big boss bar for a single blood warden
-    const wardenCount = enemies.filter(en=>en.type==='warden'&&!en.dying&&!en.leaked).length + 1;
-    if (wardenCount <= 1) {
-      bossRef = e;
-      $('boss-bar').classList.remove('hidden');
-    } else {
+    if (window.__MULTI_WARDEN_WAVE) {
       bossRef = null;
       $('boss-bar').classList.add('hidden');
+    } else {
+      const wardenCount = enemies.filter(en=>en.type==='warden'&&!en.dying&&!en.leaked).length + 1;
+      if (wardenCount <= 1) {
+        bossRef = e;
+        $('boss-bar').classList.remove('hidden');
+      } else {
+        bossRef = null;
+        $('boss-bar').classList.add('hidden');
+      }
     }
     toast('The Blood Warden has come!', true);
     shake = 10;
