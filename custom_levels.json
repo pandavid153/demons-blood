@@ -1,0 +1,207 @@
+[
+  {
+    "name": "The Shattered Coil",
+    "startGold": 240,
+    "startLives": 18,
+    "path": [
+      "0,4",
+      "3,4",
+      "3,1",
+      "7,1",
+      "7,5",
+      "5,5",
+      "5,8",
+      "10,8",
+      "10,3",
+      "14,3",
+      "14,6",
+      "17,6"
+    ],
+    "spawn": {
+      "x": 0,
+      "y": 4
+    },
+    "exit": {
+      "x": 17,
+      "y": 6
+    },
+    "waves": [
+      {
+        "name": "Coil Scouts",
+        "groups": [
+          {
+            "type": "imp",
+            "count": 10,
+            "interval": 0.7,
+            "delay": 0
+          },
+          {
+            "type": "wraith",
+            "count": 2,
+            "interval": 2,
+            "delay": 4
+          }
+        ]
+      },
+      {
+        "name": "Grave Tide",
+        "groups": [
+          {
+            "type": "ghoul",
+            "count": 12,
+            "interval": 0.8,
+            "delay": 0
+          },
+          {
+            "type": "wraith",
+            "count": 4,
+            "interval": 1.6,
+            "delay": 3
+          }
+        ]
+      },
+      {
+        "name": "Spectral Ambush",
+        "groups": [
+          {
+            "type": "wraith",
+            "count": 12,
+            "interval": 0.7,
+            "delay": 0
+          },
+          {
+            "type": "imp",
+            "count": 6,
+            "interval": 0.5,
+            "delay": 6
+          }
+        ]
+      },
+      {
+        "name": "Ironfall",
+        "groups": [
+          {
+            "type": "colossus",
+            "count": 2,
+            "interval": 4,
+            "delay": 0
+          },
+          {
+            "type": "ghoul",
+            "count": 10,
+            "interval": 0.9,
+            "delay": 2
+          }
+        ]
+      },
+      {
+        "name": "Crimson Rush",
+        "groups": [
+          {
+            "type": "imp",
+            "count": 18,
+            "interval": 0.35,
+            "delay": 0
+          },
+          {
+            "type": "ghoul",
+            "count": 8,
+            "interval": 0.8,
+            "delay": 5
+          }
+        ]
+      },
+      {
+        "name": "Phantom Horde",
+        "groups": [
+          {
+            "type": "wraith",
+            "count": 14,
+            "interval": 0.6,
+            "delay": 0
+          },
+          {
+            "type": "colossus",
+            "count": 1,
+            "interval": 1,
+            "delay": 8
+          }
+        ]
+      },
+      {
+        "name": "Bonecataclysm",
+        "groups": [
+          {
+            "type": "colossus",
+            "count": 3,
+            "interval": 3.5,
+            "delay": 0
+          },
+          {
+            "type": "ghoul",
+            "count": 14,
+            "interval": 0.7,
+            "delay": 4
+          }
+        ]
+      },
+      {
+        "name": "Shredstorm",
+        "groups": [
+          {
+            "type": "imp",
+            "count": 24,
+            "interval": 0.28,
+            "delay": 0
+          },
+          {
+            "type": "wraith",
+            "count": 10,
+            "interval": 0.8,
+            "delay": 4
+          }
+        ]
+      },
+      {
+        "name": "Steel Revenants",
+        "groups": [
+          {
+            "type": "colossus",
+            "count": 4,
+            "interval": 3,
+            "delay": 0
+          },
+          {
+            "type": "wraith",
+            "count": 10,
+            "interval": 1,
+            "delay": 5
+          }
+        ]
+      },
+      {
+        "name": "The Broken Warden",
+        "groups": [
+          {
+            "type": "warden",
+            "count": 1,
+            "interval": 1,
+            "delay": 0
+          },
+          {
+            "type": "colossus",
+            "count": 5,
+            "interval": 3.5,
+            "delay": 6
+          },
+          {
+            "type": "wraith",
+            "count": 12,
+            "interval": 0.9,
+            "delay": 10
+          }
+        ]
+      }
+    ]
+  }
+]
