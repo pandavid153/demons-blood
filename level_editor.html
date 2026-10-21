@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Demon's Blood - Level Editor</title>
+<style>
+*{box-sizing:border-box;font-family:monospace}
+body{margin:0;background:#110d14;color:#e6d7cf}
+.wrap{display:flex;height:100vh}
+.left{flex:1;display:flex;flex-direction:column}
+.right{width:380px;background:#151017;border-left:1px solid #3a2a2f;overflow:auto;padding:10px}
+canvas{background:#1a151d;flex:1;border:1px solid #3a2a2f}
+h2{margin:6px 0;font-size:14px;color:#f4d9b3}
+label{display:block;margin:4px 0;font-size:12px}
+input,select,button{font-size:12px}
+.row{display:flex;gap:6px;align-items:center;margin:4px 0;flex-wrap:wrap}
+.btn{background:#2a2126;border:1px solid #4a353a;color:#e6d7cf;padding:4px 8px;cursor:pointer}
+.btn.active{background:#5a2f35}
+.list{border:1px solid #3a2a2f;padding:6px;margin:6px 0}
+.wave{border:1px solid #3a2a2f;padding:6px;margin:4px 0}
+.small{font-size:11px}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="left">
+    <div class="row" style="padding:6px;background:#151017">
+      <button class="btn" id="tool-path">Draw Path (click tiles)</button>
+      <button class="btn" id="tool-clear">Clear Path</button>
+      <button class="btn" id="save">Save Level</button>
+      <button class="btn" id="load">Load Level</button>
+      <button class="btn" id="play">Play in Game</button>
+      <a href="index.html" class="btn">Back to Game</a>
+    </div>
+    <canvas id="c" width="1152" height="640"></canvas>
+  </div>
+  <div class="right">
+    <h2>Level Settings</h2>
+    <label>Name <input id="lname" style="width:100%" value="Custom Level"></label>
+    <div class="row"><label>Start Gold <input id="sgold" type="number" value="220" style="width:70px"></label><label>Start Lives <input id="slives" type="number" value="20" style="width:70px"></label></div>
+    <div class="row"><label>Spawn X <input id="sx" type="number" value="0" style="width:50px"></label><label>Spawn Y <input id="sy" type="number" value="1" style="width:50px"></label><label>Exit X <input id="ex" type="number" value="17" style="width:50px"></label><label>Exit Y <input id="ey" type="number" value="8" style="width:50px"></label></div>
+    
+    <h2>Waves</h2>
+    <div class="row"><button class="btn" id="addwave">Add Wave</button><button class="btn" id="rmwave">Remove Last Wave</button></div>
+    <div id="waves"></div>
+    
+    <h2>Saved Levels</h2>
+    <div id="saved"></div>
+  </div>
+</div>
+<script>
+const W=1152,H=640,T=64,COLS=18,ROWS=10;
+const c=document.getElementById('c'),ctx=c.getContext('2d');
+let path=[];
+let tool='path';
+document.getElementById('tool-path').onclick=()=>{tool='path';document.getElementById('tool-path').classList.add('active');document.getElementById('tool-clear').classList.remove('active');};
+document.getElementById('tool-clear').onclick=()=>{tool='clear';document.getElementById('tool-clear').classList.add('active');document.getElementById('tool-path').classList.remove('active');};
+document.getElementById('tool-path').classList.add('active');
+
+c.addEventListener('click',e=>{
+  const rect=c.getBoundingClientRect(); const x=Math.floor((e.clientX-rect.left)/rect.width*COLS); const y=Math.floor((e.clientY-rect.top)/rect.height*ROWS);
+  if(tool==='path'){
+    const key=x+','+y;
+    if(!path.includes(key)) path.push(key);
+  }else if(tool==='clear'){
+    path=path.filter(k=>k!==x+','+y);
+  }
+  draw();
+});
+
+function draw(){
+  ctx.fillStyle='#1a151d'; ctx.fillRect(0,0,W,H);
+  for(let y=0;y<ROWS;y++) for(let x=0;x<COLS;x++){
+    ctx.strokeStyle='rgba(120,90,80,0.15)'; ctx.strokeRect(x*T,y*T,T,T);
+  }
+  ctx.fillStyle='rgba(160,80,90,0.6)';
+  for(const k of path){const [x,y]=k.split(',').map(Number); ctx.fillRect(x*T+2,y*T+2,T-4,T-4);}
+  ctx.fillStyle='#66d9ff';
+  const sx=+document.getElementById('sx').value,sy=+document.getElementById('sy').value;
+  ctx.beginPath(); ctx.arc((sx+0.5)*T,(sy+0.5)*T,8,0,Math.PI*2); ctx.fill();
+  ctx.fillStyle='#ff4455';
+  const ex=+document.getElementById('ex').value,ey=+document.getElementById('ey').value;
+  ctx.beginPath(); ctx.arc((ex+0.5)*T,(ey+0.5)*T,8,0,Math.PI*2); ctx.fill();
+}
+draw(); setInterval(draw,200);
+
+const EN=['imp','ghoul','wraith','colossus','warden'];
+let waves=[];
+function addWave(){
+  waves.push({name:'Wave '+(waves.length+1), groups:[{type:'imp',count:8,interval:0.9,delay:0,hpMul:1,bounty:9}]});
+  renderWaves();
+}
+document.getElementById('addwave').onclick=addWave;
+document.getElementById('rmwave').onclick=()=>{waves.pop();renderWaves();};
+function renderWaves(){
+  const div=document.getElementById('waves'); div.innerHTML='';
+  waves.forEach((w,wi)=>{
+    const d=document.createElement('div'); d.className='wave';
+    d.innerHTML='<div class="row"><input value="'+w.name+'" data-w="'+wi+'" data-f="name" style="flex:1"></div>';
+    w.groups.forEach((g,gi)=>{
+      d.innerHTML+='<div class="row small"><select data-w="'+wi+'" data-g="'+gi+'" data-f="type">'+EN.map(e=>'<option value="'+e+'" '+(e===g.type?'selected':'')+'>'+e+'</option>').join('')+'</select><input type="number" value="'+g.count+'" data-w="'+wi+'" data-g="'+gi+'" data-f="count" style="width:40px" title="count"><input type="number" step="0.1" value="'+g.interval+'" data-w="'+wi+'" data-g="'+gi+'" data-f="interval" style="width:50px" title="interval"><input type="number" step="0.1" value="'+g.delay+'" data-w="'+wi+'" data-g="'+gi+'" data-f="delay" style="width:50px" title="delay"><input type="number" step="0.01" value="'+g.hpMul+'" data-w="'+wi+'" data-g="'+gi+'" data-f="hpMul" style="width:50px" title="hpMul"><input type="number" value="'+g.bounty+'" data-w="'+wi+'" data-g="'+gi+'" data-f="bounty" style="width:50px" title="bounty"></div>';
+    });
+    d.innerHTML+='<div class="row"><button class="btn small" data-a="addg" data-w="'+wi+'">Add Group</button><button class="btn small" data-a="rmg" data-w="'+wi+'">Remove Group</button></div>';
+    div.appendChild(d);
+  });
+  div.querySelectorAll('input,select').forEach(el=>{
+    el.onchange=()=>{
+      const wi=+el.dataset.w, gi=el.dataset.g!==undefined?+el.dataset.g:-1, f=el.dataset.f, a=el.dataset.a;
+      if(a==='addg'){waves[wi].groups.push({type:'imp',count:4,interval:1,delay:0,hpMul:1,bounty:9}); renderWaves(); return;}
+      if(a==='rmg'){waves[wi].groups.pop(); renderWaves(); return;}
+      if(gi>=0){
+        waves[wi].groups[gi][f]=(el.type==='number')?parseFloat(el.value):el.value;
+      }else waves[wi][f]=el.value;
+    };
+  });
+  div.querySelectorAll('button[data-a]').forEach(b=>b.onclick=()=>{eval(b.getAttribute('onclick')||''); /* simplified */ const wi=+b.dataset.w,a=b.dataset.a;if(a==='addg'){waves[wi].groups.push({type:'imp',count:4,interval:1,delay:0,hpMul:1,bounty:9});renderWaves();} if(a==='rmg'){waves[wi].groups.pop();renderWaves();}});
+}
+addWave();
+
+function getLevel(){
+  return {
+    name:document.getElementById('lname').value,
+    startGold:+document.getElementById('sgold').value,
+    startLives:+document.getElementById('slives').value,
+    path:path,
+    spawn:{x:+document.getElementById('sx').value,y:+document.getElementById('sy').value},
+    exit:{x:+document.getElementById('ex').value,y:+document.getElementById('ey').value},
+    waves:waves
+  };
+}
+
+document.getElementById('save').onclick=()=>{
+  const levels=JSON.parse(localStorage.getItem('db_levels')||'[]');
+  const lvl=getLevel();
+  levels.push(lvl);
+  localStorage.setItem('db_levels',JSON.stringify(levels));
+  refreshSaved();
+  alert('Saved');
+};
+
+function refreshSaved(){
+  const levels=JSON.parse(localStorage.getItem('db_levels')||'[]');
+  const div=document.getElementById('saved'); div.innerHTML='';
+  levels.forEach((l,i)=>{
+    const d=document.createElement('div'); d.className='row';
+    d.innerHTML='<span class="small">'+l.name+'</span><button class="btn small" data-l="'+i+'" data-a="play">Play</button><button class="btn small" data-l="'+i+'" data-a="del">Del</button>';
+    div.appendChild(d);
+  });
+  div.querySelectorAll('button').forEach(b=>{
+    b.onclick=()=>{
+      const i=+b.dataset.l, a=b.dataset.a;
+      const levels=JSON.parse(localStorage.getItem('db_levels')||'[]');
+      if(a==='del'){levels.splice(i,1);localStorage.setItem('db_levels',JSON.stringify(levels));refreshSaved();return;}
+      if(a==='play'){localStorage.setItem('db_custom_play',JSON.stringify(levels[i]));location.href='index.html?custom=1';}
+    };
+  });
+}
+refreshSaved();
+document.getElementById('play').onclick=()=>{localStorage.setItem('db_custom_play',JSON.stringify(getLevel()));location.href='index.html?custom=1';};
+document.getElementById('load').onclick=()=>{
+  const levels=JSON.parse(localStorage.getItem('db_levels')||'[]');
+  if(!levels.length)return alert('none');
+  const l=levels[levels.length-1];
+  document.getElementById('lname').value=l.name; document.getElementById('sgold').value=l.startGold; document.getElementById('slives').value=l.startLives;
+  document.getElementById('sx').value=l.spawn.x; document.getElementById('sy').value=l.spawn.y; document.getElementById('ex').value=l.exit.x; document.getElementById('ey').value=l.exit.y;
+  path=l.path||[]; waves=l.waves||[]; renderWaves(); draw();
+};
+</script>
+</body>
+</html>

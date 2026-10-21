@@ -7,39 +7,47 @@
 const W = 1152, H = 640, TILE = 64, COLS = 18, ROWS = 10;
 const WAVE_BREAK = 24;
 const WAVE_LEAD = 3;
-const START_GOLD = 220, START_LIVES = 20;
+let START_GOLD = 220, START_LIVES = 20;
 
-const PATH_COOR = [
+let PATH_COOR = [
   [0, 1], [6, 1], [6, 4], [2, 4], [2, 7],
   [11, 7], [11, 3], [15, 3], [15, 8], [17, 8]
 ];
 
-const PATH_SET = new Set();
-for (let i = 0; i < PATH_COOR.length - 1; i++) {
-  let [x, y] = PATH_COOR[i];
-  const [x2, y2] = PATH_COOR[i + 1];
-  const dx = Math.sign(x2 - x), dy = Math.sign(y2 - y);
-  PATH_SET.add(x + ',' + y);
-  while (x !== x2 || y !== y2) { x += dx; y += dy; PATH_SET.add(x + ',' + y); }
+let PATH_SET = new Set();
+function buildPath() {
+  PATH_SET = new Set();
+  for (let i = 0; i < PATH_COOR.length - 1; i++) {
+    let [x, y] = PATH_COOR[i];
+    const [x2, y2] = PATH_COOR[i + 1];
+    const dx = Math.sign(x2 - x), dy = Math.sign(y2 - y);
+    PATH_SET.add(x + ',' + y);
+    while (x !== x2 || y !== y2) { x += dx; y += dy; PATH_SET.add(x + ',' + y); }
+  }
 }
+buildPath();
 
-const WAYPOINTS = [{ x: -56, y: 96 }]
+let WAYPOINTS = [{ x: -56, y: 96 }]
   .concat(PATH_COOR.map(([tx, ty]) => ({ x: (tx + 0.5) * TILE, y: (ty + 0.5) * TILE })))
   .concat([{ x: W + 56, y: 544 }]);
 
-const SEG = [], CUM = [0];
-for (let i = 1; i < WAYPOINTS.length; i++) {
-  const a = WAYPOINTS[i - 1], b = WAYPOINTS[i];
-  SEG.push(Math.hypot(b.x - a.x, b.y - a.y));
-  CUM.push(CUM[i - 1] + SEG[i - 1]);
+let SEG = [], CUM = [0];
+function buildSeg() {
+  SEG = []; CUM = [0];
+  for (let i = 1; i < WAYPOINTS.length; i++) {
+    const a = WAYPOINTS[i - 1], b = WAYPOINTS[i];
+    SEG.push(Math.hypot(b.x - a.x, b.y - a.y));
+    CUM.push(CUM[i - 1] + SEG[i - 1]);
+  }
 }
+buildSeg();
 
-const SPAWN_PT = WAYPOINTS[1];
-const EXIT_PT = WAYPOINTS[WAYPOINTS.length - 1];
-const RIFT = { x: 4, y: 96 };
-const PORTAL = { x: 1146, y: 544 };
+let SPAWN_PT = WAYPOINTS[1];
+let EXIT_PT = WAYPOINTS[WAYPOINTS.length - 1];
+let RIFT = { x: 4, y: 96 };
+let PORTAL = { x: 1146, y: 544 };
 
-const DECOR = [
+let DECOR = [
   { tx: 0, ty: 0, kind: 'pillar' }, { tx: 1, ty: 0, kind: 'rock' },
   { tx: 4, ty: 0, kind: 'crystal_red' }, { tx: 8, ty: 0, kind: 'tree' },
   { tx: 10, ty: 0, kind: 'bones' }, { tx: 13, ty: 0, kind: 'rock' },
@@ -54,7 +62,32 @@ const DECOR = [
   { tx: 13, ty: 6, kind: 'tree' }, { tx: 17, ty: 4, kind: 'crystal_red' },
   { tx: 4, ty: 6, kind: 'skulls' }
 ];
-const BLOCKED = new Set(DECOR.map(d => d.tx + ',' + d.ty));
+let BLOCKED = new Set(DECOR.map(d => d.tx + ',' + d.ty));
+
+let customLevel = null;
+try {
+  const p = new URLSearchParams(location.search);
+  if (p.get('custom') === '1') {
+    const s = localStorage.getItem('db_custom_play');
+    if (s) customLevel = JSON.parse(s);
+  }
+} catch(e) {}
+
+if (customLevel) {
+  PATH_COOR = (customLevel.path || []).map(k=>k.split(',').map(Number));
+  if (PATH_COOR.length < 2) PATH_COOR = [[0,1],[17,8]];
+  buildPath();
+  const sy = (customLevel.spawn && typeof customLevel.spawn.y !== 'undefined') ? customLevel.spawn.y : PATH_COOR[0][1];
+  const ey = (customLevel.exit && typeof customLevel.exit.y !== 'undefined') ? customLevel.exit.y : PATH_COOR[PATH_COOR.length-1][1];
+  WAYPOINTS = [{ x: -56, y: sy * TILE + 32 }]
+    .concat(PATH_COOR.map(([tx, ty]) => ({ x: (tx + 0.5) * TILE, y: (ty + 0.5) * TILE })))
+    .concat([{ x: W + 56, y: ey * TILE + 32 }]);
+  buildSeg();
+  SPAWN_PT = WAYPOINTS[1]; EXIT_PT = WAYPOINTS[WAYPOINTS.length - 1];
+  DECOR = []; BLOCKED = new Set();
+  if (typeof customLevel.startGold === 'number') START_GOLD = customLevel.startGold;
+  if (typeof customLevel.startLives === 'number') START_LIVES = customLevel.startLives;
+}
 
 const ENEMY_DEFS = {
   imp:      { name: 'Imp',              hp: 46,   speed: 88,  bounty: 9,   radius: 14, barW: 30, barH: 36 },
@@ -114,7 +147,7 @@ const TOWER_DEFS = {
 
 const PROJ_SPEED = { blood: 540, frost: 470, doom: 380, soul: 430, seeker: 0 };
 
-const WAVES = [
+let WAVES = [
   { name: 'Scouting Imps',      groups: [ { type: 'imp', count: 8, interval: 0.9, delay: 0 } ] },
   { name: 'Rotting Advance',    groups: [ { type: 'imp', count: 6, interval: 0.7, delay: 0 }, { type: 'ghoul', count: 4, interval: 1.4, delay: 4 } ] },
   { name: 'Bone Patrol',        groups: [ { type: 'ghoul', count: 8, interval: 1.1, delay: 0 }, { type: 'imp', count: 4, interval: 0.6, delay: 7 } ] },
@@ -126,6 +159,13 @@ const WAVES = [
   { name: 'Siege of Bones',     groups: [ { type: 'colossus', count: 4, interval: 4, delay: 0 }, { type: 'ghoul', count: 10, interval: 0.9, delay: 3 } ] },
   { name: 'The Blood Warden',   groups: [ { type: 'warden', count: 1, interval: 1, delay: 0 }, { type: 'wraith', count: 8, interval: 1.4, delay: 4 }, { type: 'colossus', count: 3, interval: 5, delay: 9 } ] }
 ];
+
+if (customLevel && Array.isArray(customLevel.waves) && customLevel.waves.length > 0) {
+  WAVES = customLevel.waves.map(w => ({
+    name: w.name || 'Wave',
+    groups: (w.groups||[]).map(g => ({ type: g.type || 'imp', count: g.count||1, interval: g.interval||1, delay: g.delay||0 }))
+  }));
+}
 
 /* ---------------- state ---------------- */
 let canvas, ctx, stage;
@@ -232,6 +272,10 @@ function fit() {
    GAME FLOW
    ============================================================ */
 function resetGame() {
+  if (typeof customLevel !== 'undefined' && customLevel) {
+    if (typeof customLevel.startGold === 'number') START_GOLD = customLevel.startGold;
+    if (typeof customLevel.startLives === 'number') START_LIVES = customLevel.startLives;
+  }
   gold = START_GOLD; lives = START_LIVES;
   waveIndex = -1; waveActive = false; spawnQueue = []; waveTimer = 0;
   countdown = 14;
