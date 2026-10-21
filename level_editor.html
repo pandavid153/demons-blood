@@ -157,7 +157,7 @@ function refreshSaved(){
   });
 }
 refreshSaved();
-document.getElementById('play').onclick=()=>{localStorage.setItem('db_custom_play',JSON.stringify(getLevel()));location.href='index.html?custom=1';};
+document.getElementById('play').onclick=()=>{const lvl=getLevel(); localStorage.setItem('db_custom_play',JSON.stringify(lvl)); const levels=JSON.parse(localStorage.getItem('db_levels')||'[]'); levels.push(lvl); localStorage.setItem('db_levels',JSON.stringify(levels)); location.href='index.html?custom=1';};
 document.getElementById('load').onclick=()=>{
   const levels=JSON.parse(localStorage.getItem('db_levels')||'[]');
   if(!levels.length)return alert('none');
