@@ -21,8 +21,10 @@ function buildPath() {
     let [x, y] = PATH_COOR[i];
     const [x2, y2] = PATH_COOR[i + 1];
     const dx = Math.sign(x2 - x), dy = Math.sign(y2 - y);
+    if (dx === 0 && dy === 0) { PATH_SET.add(x + ',' + y); continue; }
     PATH_SET.add(x + ',' + y);
-    while (x !== x2 || y !== y2) { x += dx; y += dy; PATH_SET.add(x + ',' + y); }
+    let guard = 0;
+    while ((x !== x2 || y !== y2) && guard++ < 500) { x += dx; y += dy; PATH_SET.add(x + ',' + y); }
   }
 }
 buildPath();
@@ -73,21 +75,40 @@ try {
   }
 } catch(e) {}
 
-if (customLevel) {
-  PATH_COOR = (customLevel.path || []).map(k=>k.split(',').map(Number));
-  if (PATH_COOR.length < 2) PATH_COOR = [[0,1],[17,8]];
+function applyCustomLevel(lvl) {
+  if (!lvl) return false;
+  customLevel = lvl;
+  const pts = (lvl.path || []).map(k => {
+    const a = String(k).split(',');
+    return [parseInt(a[0], 10) || 0, parseInt(a[1], 10) || 0];
+  }).filter(p => p[0] >= 0 && p[0] < COLS && p[1] >= 0 && p[1] < ROWS);
+  PATH_COOR = pts.length >= 2 ? pts : [[0, 1], [17, 8]];
   buildPath();
-  const sy = (customLevel.spawn && typeof customLevel.spawn.y !== 'undefined') ? customLevel.spawn.y : PATH_COOR[0][1];
-  const ey = (customLevel.exit && typeof customLevel.exit.y !== 'undefined') ? customLevel.exit.y : PATH_COOR[PATH_COOR.length-1][1];
+  const sy = (lvl.spawn && typeof lvl.spawn.y !== 'undefined') ? lvl.spawn.y : PATH_COOR[0][1];
+  const ey = (lvl.exit && typeof lvl.exit.y !== 'undefined') ? lvl.exit.y : PATH_COOR[PATH_COOR.length - 1][1];
   WAYPOINTS = [{ x: -56, y: sy * TILE + 32 }]
     .concat(PATH_COOR.map(([tx, ty]) => ({ x: (tx + 0.5) * TILE, y: (ty + 0.5) * TILE })))
     .concat([{ x: W + 56, y: ey * TILE + 32 }]);
   buildSeg();
-  SPAWN_PT = WAYPOINTS[1]; EXIT_PT = WAYPOINTS[WAYPOINTS.length - 1];
-  DECOR = []; BLOCKED = new Set();
-  if (typeof customLevel.startGold === 'number') START_GOLD = customLevel.startGold;
-  if (typeof customLevel.startLives === 'number') START_LIVES = customLevel.startLives;
+  SPAWN_PT = WAYPOINTS[1];
+  EXIT_PT = WAYPOINTS[WAYPOINTS.length - 1];
+  DECOR = [];
+  BLOCKED = new Set();
+  if (typeof lvl.startGold === 'number') START_GOLD = lvl.startGold;
+  if (typeof lvl.startLives === 'number') START_LIVES = lvl.startLives;
+  if (Array.isArray(lvl.waves) && lvl.waves.length > 0) {
+    WAVES = lvl.waves.map(w => ({
+      name: w.name || 'Wave',
+      groups: (w.groups || []).map(g => ({
+        type: g.type || 'imp', count: g.count || 1,
+        interval: g.interval || 1, delay: g.delay || 0
+      }))
+    }));
+  }
+  return true;
 }
+
+let pendingCustom = customLevel;
 
 const ENEMY_DEFS = {
   imp:      { name: 'Imp',              hp: 46,   speed: 88,  bounty: 9,   radius: 14, barW: 30, barH: 36 },
@@ -160,8 +181,8 @@ let WAVES = [
   { name: 'The Blood Warden',   groups: [ { type: 'warden', count: 1, interval: 1, delay: 0 }, { type: 'wraith', count: 8, interval: 1.4, delay: 4 }, { type: 'colossus', count: 3, interval: 5, delay: 9 } ] }
 ];
 
-if (customLevel && Array.isArray(customLevel.waves) && customLevel.waves.length > 0) {
-  WAVES = customLevel.waves.map(w => ({
+if (typeof pendingCustom !== 'undefined' && pendingCustom && Array.isArray(pendingCustom.waves) && pendingCustom.waves.length > 0) {
+  WAVES = pendingCustom.waves.map(w => ({
     name: w.name || 'Wave',
     groups: (w.groups||[]).map(g => ({ type: g.type || 'imp', count: g.count||1, interval: g.interval||1, delay: g.delay||0 }))
   }));
@@ -236,30 +257,11 @@ function init() {
   if ($('btn-continue')) $('btn-continue').addEventListener('click', startGame);
   const bsc = document.getElementById('btn-start-custom');
   if (bsc) bsc.addEventListener('click', () => {
+    window.__LOAD_CUSTOM = 'The Shattered Coil';
     try {
-      let lvl = null;
-      const s = localStorage.getItem('db_custom_play');
-      if (s) lvl = JSON.parse(s);
-      else {
-        const list = JSON.parse(localStorage.getItem('db_levels')||'[]');
-        lvl = list.find(x=>x && x.name==='The Shattered Coil') || list[0];
-      }
-      if (lvl) {
-        if (typeof customLevel !== 'undefined') customLevel = lvl;
-        PATH_COOR = (lvl.path||[]).map(k=>k.split(',').map(Number));
-        if (PATH_COOR.length < 2) PATH_COOR = [[0,1],[17,8]];
-        if (typeof buildPath === 'function') buildPath();
-        const sy = (lvl.spawn && typeof lvl.spawn.y !== 'undefined') ? lvl.spawn.y : PATH_COOR[0][1];
-        const ey = (lvl.exit && typeof lvl.exit.y !== 'undefined') ? lvl.exit.y : PATH_COOR[PATH_COOR.length-1][1];
-        WAYPOINTS = [{ x: -56, y: sy * TILE + 32 }].concat(PATH_COOR.map(([tx,ty])=>({x:(tx+0.5)*TILE,y:(ty+0.5)*TILE}))).concat([{ x: W + 56, y: ey * TILE + 32 }]);
-        if (typeof buildSeg === 'function') buildSeg();
-        SPAWN_PT = WAYPOINTS[1]; EXIT_PT = WAYPOINTS[WAYPOINTS.length-1];
-        DECOR = []; BLOCKED = new Set();
-        if (typeof lvl.startGold === 'number') START_GOLD = lvl.startGold;
-        if (typeof lvl.startLives === 'number') START_LIVES = lvl.startLives;
-        if (Array.isArray(lvl.waves) && lvl.waves.length>0) {
-          WAVES = lvl.waves.map(w=>({name:w.name||'Wave',groups:(w.groups||[]).map(g=>({type:g.type||'imp',count:g.count||1,interval:g.interval||1,delay:g.delay||0}))}));
-        }
+      if (typeof CUSTOM_LEVELS !== 'undefined') {
+        const cl = CUSTOM_LEVELS.find(x => x.name === 'The Shattered Coil');
+        if (cl) applyCustomLevel(cl);
       }
     } catch(e){}
     openDifficulty();
@@ -336,6 +338,16 @@ let difficulty = 1;
 let hpScale = 1;
 
 function openDifficulty() {
+  // if we want to load a custom level via built-in CUSTOM_LEVELS or pending
+  try {
+    if (typeof window.__LOAD_CUSTOM === 'string') {
+      if (typeof CUSTOM_LEVELS !== 'undefined') {
+        const cl = CUSTOM_LEVELS.find(x => x.name === window.__LOAD_CUSTOM);
+        if (cl) { applyCustomLevel(cl); pendingCustom = cl; if (Array.isArray(cl.waves)) WAVES = cl.waves.map(w=>({name:w.name||'Wave',groups:(w.groups||[]).map(g=>({type:g.type||'imp',count:g.count||1,interval:g.interval||1,delay:g.delay||0}))})); }
+      }
+      window.__LOAD_CUSTOM = null;
+    }
+  } catch(e){}
   state = 'title';
   $('title-screen').classList.add('hidden');
   $('difficulty-screen').classList.remove('hidden');
@@ -350,6 +362,14 @@ function startGame() {
   difficulty = ds ? parseInt(ds.value, 10) : 0;
   if (isNaN(difficulty)) difficulty = 0;
   hpScale = 1 + difficulty * 0.1;
+  try {
+    if (typeof window.__LOAD_CUSTOM === 'string') {
+      if (typeof CUSTOM_LEVELS !== 'undefined') {
+        const cl = CUSTOM_LEVELS.find(x => x.name === window.__LOAD_CUSTOM);
+        if (cl) { applyCustomLevel(cl); if (Array.isArray(cl.waves)) WAVES = cl.waves.map(w=>({name:w.name||'Wave',groups:(w.groups||[]).map(g=>({type:g.type||'imp',count:g.count||1,interval:g.interval||1,delay:g.delay||0}))})); }
+      }
+    }
+  } catch(e){}
   resetGame();
   state = 'playing';
   canvas.classList.remove('title-bg');
