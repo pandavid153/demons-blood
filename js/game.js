@@ -234,6 +234,36 @@ function init() {
     });
   }
   if ($('btn-continue')) $('btn-continue').addEventListener('click', startGame);
+  const bsc = document.getElementById('btn-start-custom');
+  if (bsc) bsc.addEventListener('click', () => {
+    try {
+      let lvl = null;
+      const s = localStorage.getItem('db_custom_play');
+      if (s) lvl = JSON.parse(s);
+      else {
+        const list = JSON.parse(localStorage.getItem('db_levels')||'[]');
+        lvl = list.find(x=>x && x.name==='The Shattered Coil') || list[0];
+      }
+      if (lvl) {
+        if (typeof customLevel !== 'undefined') customLevel = lvl;
+        PATH_COOR = (lvl.path||[]).map(k=>k.split(',').map(Number));
+        if (PATH_COOR.length < 2) PATH_COOR = [[0,1],[17,8]];
+        if (typeof buildPath === 'function') buildPath();
+        const sy = (lvl.spawn && typeof lvl.spawn.y !== 'undefined') ? lvl.spawn.y : PATH_COOR[0][1];
+        const ey = (lvl.exit && typeof lvl.exit.y !== 'undefined') ? lvl.exit.y : PATH_COOR[PATH_COOR.length-1][1];
+        WAYPOINTS = [{ x: -56, y: sy * TILE + 32 }].concat(PATH_COOR.map(([tx,ty])=>({x:(tx+0.5)*TILE,y:(ty+0.5)*TILE}))).concat([{ x: W + 56, y: ey * TILE + 32 }]);
+        if (typeof buildSeg === 'function') buildSeg();
+        SPAWN_PT = WAYPOINTS[1]; EXIT_PT = WAYPOINTS[WAYPOINTS.length-1];
+        DECOR = []; BLOCKED = new Set();
+        if (typeof lvl.startGold === 'number') START_GOLD = lvl.startGold;
+        if (typeof lvl.startLives === 'number') START_LIVES = lvl.startLives;
+        if (Array.isArray(lvl.waves) && lvl.waves.length>0) {
+          WAVES = lvl.waves.map(w=>({name:w.name||'Wave',groups:(w.groups||[]).map(g=>({type:g.type||'imp',count:g.count||1,interval:g.interval||1,delay:g.delay||0}))}));
+        }
+      }
+    } catch(e){}
+    openDifficulty();
+  });
   if ($('btn-back-title')) $('btn-back-title').addEventListener('click', toMenu);
   $('btn-pause').addEventListener('click', () => setPaused(!paused));
   $('btn-resume').addEventListener('click', () => setPaused(false));
