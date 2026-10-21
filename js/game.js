@@ -471,8 +471,15 @@ function spawnEnemy(type, wave) {
     });
   }
   if (def.boss) {
-    bossRef = e;
-    $('boss-bar').classList.remove('hidden');
+    // only show big boss bar for a single blood warden
+    const wardenCount = enemies.filter(en=>en.type==='warden'&&!en.dying&&!en.leaked).length + 1;
+    if (wardenCount <= 1) {
+      bossRef = e;
+      $('boss-bar').classList.remove('hidden');
+    } else {
+      bossRef = null;
+      $('boss-bar').classList.add('hidden');
+    }
     toast('The Blood Warden has come!', true);
     shake = 10;
   }
@@ -631,6 +638,11 @@ function leakEnemy(e) {
   }
   toast(e.def.boss ? 'The Warden breached the portal! (-5)' : e.def.name + ' slipped through! (-' + cost + ')', true);
   if (bossRef === e) { bossRef = null; $('boss-bar').classList.add('hidden'); }
+  const wardenCount = enemies.filter(en=>en.type==='warden'&&!en.dying&&!en.leaked).length;
+  if (wardenCount > 1) { bossRef = null; $('boss-bar').classList.add('hidden'); } else if (wardenCount === 1 && !bossRef) {
+    const bw = enemies.find(en=>en.type==='warden'&&!en.dying&&!en.leaked);
+    if (bw) { bossRef = bw; $('boss-bar').classList.remove('hidden'); }
+  } else if (wardenCount === 0) { bossRef = null; $('boss-bar').classList.add('hidden'); }
   if (lives <= 0) { lives = 0; defeat(); }
 }
 
